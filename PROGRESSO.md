@@ -1,51 +1,63 @@
 # Progresso — Liga Candanga Solidária (app)
 
-## Fase atual: v1 — protótipo funcional local
+## v1 — protótipo funcional local
 
 **Status: concluída**
 
-- [x] Projeto Vite + React + TypeScript + Tailwind v4 configurado
-- [x] Camada de dados local (`DataContext.tsx`), pronta para ser trocada por Supabase sem mexer nas páginas
+- [x] Projeto Vite + React + Tailwind v4 configurado
 - [x] Cadastro e listagem de doações, com status (Disponível / Reservada / Entregue)
 - [x] Cadastro e listagem de beneficiários (família, escolinha, instituição)
 - [x] Fluxo de entrega: vincula doação disponível a um beneficiário
 - [x] Dashboard com totais, doações por categoria e beneficiários por região
-- [x] Testado ponta a ponta (cadastro → vínculo → atualização do dashboard) e visualmente em todas as telas
 
 ## v1.1 — área do administrador e correções
 
 **Status: concluída**
 
-- [x] Tela **Configurações** (`src/pages/configuracoes/`): editar e remover doações, beneficiários e entregas, com busca
+- [x] Tela **Configurações**: editar e remover doações, beneficiários e entregas, com busca
 - [x] Regras de consistência: não remove doação entregue nem beneficiário com entregas; remover entrega devolve a doação para Disponível
 - [x] Status **Reservada** pode ser definido na edição da doação
 - [x] Aba **Sistema**: restaurar dados de exemplo ou apagar tudo
-- [x] Correção: data padrão usa o fuso local (antes, após 21h em Brasília, vinha o dia seguinte)
-- [x] Correção: layout responsivo no celular (menu e tabelas)
-- [x] Correção: app não quebra mais com `localStorage` incompleto
+- [x] Correção: data padrão usa o fuso local
+- [x] Correção: layout responsivo no celular
 - [x] Correção: entrega não pode ter data anterior ao recebimento da doação
+
+## v2 — backend em Node.js + Express e código em JavaScript
+
+**Status: concluída**
+
+- [x] Projeto separado em `backend/` e `frontend/`
+- [x] TypeScript removido: todo o código em JavaScript (`.js` / `.jsx`)
+- [x] API REST em Express com rotas de doações, beneficiários, entregas, resumo e sistema
+- [x] Regras de negócio movidas do navegador (`DataContext`) para o backend
+- [x] Dados salvos em `backend/dados.json` (antes: `localStorage` do navegador) — agora compartilhados entre todos os usuários
+- [x] Frontend consome a API via `fetch`; telas e mensagens mantidas iguais
+- [x] Express serve o frontend compilado, permitindo rodar tudo com um único comando
+- [x] Testado: 22 cenários de regra de negócio na API e renderização das telas com dados vindos do backend
 
 ## Próximas fases
 
-- [ ] Conectar Supabase de verdade (ver README.md, seção "Próximo passo")
+- [ ] Trocar o arquivo JSON por banco de dados (PostgreSQL/Supabase)
 - [ ] Mapa interativo (Leaflet.js) dos bairros atendidos
 - [ ] Autenticação da equipe — importante: hoje a tela Configurações fica aberta para qualquer pessoa com o link
-- [ ] Deploy no Vercel
+- [ ] Deploy (Render ou Railway)
 - [ ] Relatório de impacto exportável
 
 ## Decisões tomadas
 
-- **HashRouter** em vez de BrowserRouter: evita precisar configurar rewrites no host estático (ex.: Vercel) nesta fase inicial.
-- **localStorage** como stand-in do Supabase: permite validar o fluxo completo sem esperar credenciais, e a troca depois é isolada em um único arquivo (`DataContext.tsx`).
-- Doação tratada como lote único (sem fracionamento entre beneficiários) para manter a v1 simples — ver README para o racional.
-- Regras de edição/remoção ficam no `DataContext.tsx` (não nas telas), para continuarem valendo na troca para o Supabase.
+- **JavaScript + Express**: o sistema é apresentado na disciplina de Programação Web, que trabalha com Node.js e Express.
+- **Arquivo JSON** como armazenamento: é a forma mais simples de explicar persistência no backend sem depender de banco instalado; a troca por um banco fica isolada em `backend/banco.js`.
+- **Regras de negócio no backend**: o servidor é a fonte da verdade; o frontend só exibe a mensagem de erro que a API devolve.
+- **Proxy do Vite** (`/api` → `localhost:3000`) no desenvolvimento, evitando configuração de CORS.
+- **HashRouter**: permite que o Express sirva o frontend sem precisar de rota coringa.
+- Doação tratada como lote único (sem fracionamento entre beneficiários).
 
 ## Observação para quem usa Windows
 
-Se o `npm run dev` / `npm run build` falhar com "An Application Control policy has blocked this file", é o **Smart App Control** do Windows bloqueando os binários nativos do Vite 8. Dá para rodar via Docker:
+Se o `npm run dev` / `npm run build` do frontend falhar com "An Application Control policy has blocked this file", é o **Smart App Control** do Windows bloqueando os binários nativos do Vite 8. Dá para gerar o build via Docker (dentro da pasta `frontend`) e depois rodar o backend normalmente no modo apresentação:
 
 ```bash
-docker run -d --name liga-candanga-dev -p 5174:5173 -v "$PWD:/app" -v liga-candanga-nm:/app/node_modules -w /app node:24 sh -c "npm ci && npx vite --host 0.0.0.0"
+docker run --rm -v "$PWD:/app" -v liga-candanga-nm:/app/node_modules -w /app node:24 sh -c "npm ci && npx vite build"
 ```
 
-Acesse em `http://localhost:5174`. Após alterar o código, rode `docker restart liga-candanga-dev`.
+O backend (Express) não usa binários nativos e não é afetado.

@@ -1,72 +1,134 @@
 # Liga Candanga Solidária
 
-Protótipo do sistema de controle de doações e beneficiários da Liga Candanga de Futsal do DF, desenvolvido para o projeto de extensão universitária (UCB) com a Liga Candanga como parceira, dentro do programa **Liga Candanga Solidária** (ODS 10 — Redução das Desigualdades).
+Sistema de controle de doações e beneficiários da Liga Candanga de Futsal do DF, desenvolvido para o projeto de extensão universitária (UCB) com a Liga Candanga como parceira, dentro do programa **Liga Candanga Solidária** (ODS 10 — Redução das Desigualdades).
+
+O projeto é dividido em duas partes, ambas em **JavaScript**:
+
+- **`backend/`** — API REST em **Node.js + Express**. Guarda os dados e aplica todas as regras de negócio.
+- **`frontend/`** — interface em **React** (Vite + Tailwind CSS). Mostra as telas e conversa com a API via `fetch`.
 
 ## Stack
 
-- [Vite](https://vitejs.dev/) + React + TypeScript
-- [Tailwind CSS v4](https://tailwindcss.com/) (via `@tailwindcss/vite`)
-- [React Router](https://reactrouter.com/) (`HashRouter`, para funcionar em qualquer host estático sem configuração extra)
-- Persistência: `localStorage` nesta fase (ver seção **Dados** abaixo). O plano final é Supabase.
+| Parte | Tecnologias |
+|---|---|
+| Backend | Node.js 20+, Express 5 |
+| Frontend | React 19, React Router (`HashRouter`), Vite, Tailwind CSS v4 |
+| Dados | Arquivo `backend/dados.json` (criado automaticamente) |
 
-## Setup
+## Como rodar
+
+Pré-requisito: Node.js 20 ou superior.
+
+### Modo desenvolvimento (dois terminais)
+
+Terminal 1 — backend:
 
 ```bash
+cd backend
 npm install
 npm run dev
 ```
 
-A aplicação sobe em `http://localhost:5173`.
+A API sobe em `http://localhost:3000`.
 
-Build de produção:
+Terminal 2 — frontend:
 
 ```bash
-npm run build
-npm run preview
+cd frontend
+npm install
+npm run dev
 ```
+
+A interface sobe em `http://localhost:5173`. O Vite repassa toda chamada `/api/...` para o backend (configurado em `frontend/vite.config.js`), por isso não é preciso configurar CORS.
+
+### Modo apresentação (um único servidor)
+
+```bash
+cd frontend
+npm install
+npm run build
+
+cd ../backend
+npm install
+npm start
+```
+
+Acesse `http://localhost:3000`. O Express serve a API e também as telas já compiladas (`frontend/dist`).
+
+### Variáveis de ambiente
+
+| Variável | Padrão | Uso |
+|---|---|---|
+| `PORT` | `3000` | Porta do servidor Express |
 
 ## Estrutura
 
 ```
-src/
-  components/     Layout, StatusBadge, StatCard, Field (componentes reutilizáveis)
-  lib/
-    types.ts        Tipos de domínio (Doacao, Beneficiario, Entrega, ResumoImpacto)
-    seed.ts          Dados de exemplo usados no primeiro carregamento
-    DataContext.tsx  Camada de dados (estado + persistência)
-  pages/
-    Dashboard.tsx       Resumo de impacto
-    Doacoes.tsx         Cadastro e listagem de doações
-    Beneficiarios.tsx   Cadastro e listagem de beneficiários
-    Entregas.tsx        Vínculo de uma doação a um beneficiário
+backend/
+  server.js            Cria o app Express, registra as rotas e sobe o servidor
+  banco.js             Lê e grava o arquivo dados.json
+  seed.js              Dados de exemplo usados no primeiro acesso
+  util.js              gerarId e hojeLocal
+  rotas/
+    doacoes.js         CRUD de doações + regras
+    beneficiarios.js   CRUD de beneficiários + regras
+    entregas.js        CRUD de entregas + regras (muda o status da doação)
+    resumo.js          Números do dashboard
+    sistema.js         Restaurar exemplo / apagar tudo
+frontend/
+  src/
+    components/        Layout, Modal, StatCard, StatusBadge, Field
+    lib/
+      DataContext.jsx  Única camada que fala com a API (fetch)
+      constantes.js    Categorias, status, tipos e regiões
+      datas.js         Data de hoje no fuso local
+    pages/
+      Dashboard.jsx, Doacoes.jsx, Beneficiarios.jsx, Entregas.jsx
+      configuracoes/   Área do administrador (editar/remover)
 ```
 
-## Fluxo do protótipo (v1)
+## API
 
-1. **Doações**: registra o que foi arrecadado (categoria, quantidade, origem, data). Toda doação nasce com status `Disponível`.
-2. **Beneficiários**: cadastra famílias, escolinhas ou instituições que podem receber doações, com região administrativa e necessidade.
-3. **Entregas**: vincula uma doação disponível a um beneficiário. Ao registrar, a doação passa para o status `Entregue`.
-4. **Dashboard**: totais de doações, doações disponíveis, beneficiários e entregas, além de doações por categoria, beneficiários por região e as últimas entregas.
+Todas as rotas começam com `/api`. Os dados vão e voltam em JSON. Quando uma regra de negócio impede a operação, a API responde **400** com `{ "erro": "mensagem" }`, e o frontend mostra essa mensagem na tela.
 
-Simplificação assumida nesta v1: cada doação é tratada como um lote único, vinculado a um único beneficiário por vez (sem fracionar quantidade entre vários beneficiários). Isso cobre o fluxo essencial do programa e pode evoluir depois, se o grupo achar necessário.
+| Método | Rota | O que faz |
+|---|---|---|
+| GET | `/api/doacoes` | Lista doações |
+| POST | `/api/doacoes` | Cadastra doação (nasce `Disponível`) |
+| PUT | `/api/doacoes/:id` | Edita doação |
+| DELETE | `/api/doacoes/:id` | Remove doação |
+| GET | `/api/beneficiarios` | Lista beneficiários |
+| POST | `/api/beneficiarios` | Cadastra beneficiário |
+| PUT | `/api/beneficiarios/:id` | Edita beneficiário |
+| DELETE | `/api/beneficiarios/:id` | Remove beneficiário |
+| GET | `/api/entregas` | Lista entregas |
+| POST | `/api/entregas` | Registra entrega (doação passa para `Entregue`) |
+| PUT | `/api/entregas/:id` | Edita entrega |
+| DELETE | `/api/entregas/:id` | Remove entrega (doação volta para `Disponível`) |
+| GET | `/api/resumo` | Totais do dashboard |
+| POST | `/api/sistema/restaurar-exemplo` | Substitui tudo pelos dados de exemplo |
+| POST | `/api/sistema/apagar-tudo` | Apaga todos os dados |
+
+### Regras de negócio (aplicadas no backend)
+
+- Doação precisa de origem e de quantidade inteira maior que zero.
+- Beneficiário precisa de nome.
+- Só uma doação `Disponível` pode ser entregue, e a data da entrega não pode ser anterior ao recebimento da doação.
+- Uma doação só fica `Entregue` registrando uma entrega; enquanto tiver entrega, não pode mudar de status nem ter data de recebimento posterior à entrega.
+- Não é possível remover doação entregue nem beneficiário com entregas.
+- Remover uma entrega devolve a doação para `Disponível`.
+
+Simplificação assumida: cada doação é tratada como um lote único, vinculado a um único beneficiário por vez.
 
 ## Dados
 
-Por enquanto os dados vivem no `localStorage` do navegador (chave `liga-candanga-solidaria:v1`), começando com alguns exemplos (marcados como "(exemplo)"). Isso permite testar o fluxo completo sem depender de credenciais externas.
+Os dados ficam em `backend/dados.json`. Se o arquivo não existir, a API responde com os dados de exemplo (`seed.js`) e cria o arquivo na primeira alteração. Para recomeçar do zero, basta apagar o arquivo ou usar a aba **Configurações → Sistema**.
 
-As funções em `DataContext.tsx` (`adicionarDoacao`, `adicionarBeneficiario`, `registrarEntrega`, etc.) já têm a mesma assinatura que teriam se chamassem o Supabase — a troca de `localStorage` para Supabase deve significar reescrever o *dentro* dessas funções (chamadas `supabase.from(...).insert(...)` etc.), sem precisar mudar nenhuma página.
+## Próximas fases
 
-### Próximo passo: conectar o Supabase de verdade
-
-1. Criar um projeto em [supabase.com](https://supabase.com).
-2. Criar as tabelas `doacoes`, `beneficiarios` e `entregas` espelhando os tipos em `src/lib/types.ts`.
-3. Instalar `@supabase/supabase-js` e criar um client em `src/lib/supabaseClient.ts` com a URL e a anon key do projeto (via variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`).
-4. Reescrever as funções de `DataContext.tsx` para ler/escrever no Supabase em vez do `localStorage`.
-
-## Próximas fases (fora do escopo desta v1)
-
-- Mapa interativo (Leaflet.js) com os bairros/regiões administrativas atendidas.
-- Autenticação simples para os membros da equipe/Liga.
+- Trocar o arquivo JSON por um banco de dados (PostgreSQL/Supabase).
+- Mapa interativo (Leaflet.js) com as regiões administrativas atendidas.
+- Autenticação da equipe — hoje a tela Configurações fica aberta para qualquer pessoa com o link.
 - Fracionamento de doações entre múltiplos beneficiários.
-- Relatório de impacto exportável (o "Relatório anual de impacto" previsto no programa Liga Candanga Solidária).
-- Deploy no Vercel.
+- Relatório de impacto exportável.
+- Deploy (Render ou Railway, por ter um servidor Node).
