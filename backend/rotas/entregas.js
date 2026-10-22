@@ -1,63 +1,43 @@
 import { Router } from 'express'
-import { lerDados, salvarDados } from '../banco.js'
-import { gerarId } from '../util.js'
+import { atualizarEntrega, buscarEntrega, listarEntregas, registrarEntrega, removerEntrega } from '../banco.js'
+import { responderErro } from '../erros.js'
+import { dataValida, gerarId } from '../util.js'
 
 const router = Router()
 
-router.get('/', (req, res) => {
-  res.json(lerDados().entregas)
+router.get('/', async (req, res) => {
+  res.json(await listarEntregas())
 })
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { doacaoId, beneficiarioId, data, responsavel } = req.body
   if (!doacaoId || !beneficiarioId || !responsavel?.trim()) {
     return res.status(400).json({ erro: 'Selecione a doação, o beneficiário e informe o responsável.' })
   }
+  if (!dataValida(data)) return res.status(400).json({ erro: 'Informe uma data de entrega válida.' })
 
-  const dados = lerDados()
-  const doacao = dados.doacoes.find((d) => d.id === doacaoId)
-  if (!doacao || doacao.status !== 'Disponível') {
-    return res.status(400).json({ erro: 'Esta doação não está disponível para entrega.' })
-  }
-  if (data < doacao.data) {
-    return res.status(400).json({ erro: `A data da entrega não pode ser anterior ao recebimento da doação (${doacao.data}).` })
-  }
-
-  const entrega = { id: gerarId('entrega'), doacaoId, beneficiarioId, data, responsavel: responsavel.trim() }
-  dados.entregas.unshift(entrega)
-  doacao.status = 'Entregue'
-  salvarDados(dados)
+  const entrega = await registrarEntrega({ id: gerarId('entrega'), doacaoId, beneficiarioId, data, responsavel: responsavel.trim() })
   res.status(201).json(entrega)
 })
 
-router.put('/:id', (req, res) => {
-  const dados = lerDados()
-  const entrega = dados.entregas.find((e) => e.id === req.params.id)
-  if (!entrega) return res.status(404).json({ erro: 'Entrega não encontrada.' })
+router.put('/:id', async (req, res) => {
+  const { id } = req.params
+  if (!(await buscarEntrega(id))) return res.status(404).json({ erro: 'Entrega não encontrada.' })
 
   const { beneficiarioId, data, responsavel } = req.body
   if (!responsavel?.trim()) return res.status(400).json({ erro: 'Informe o responsável pela entrega.' })
+  if (!beneficiarioId) return res.status(400).json({ erro: 'Beneficiário não encontrado.' })
+  if (!dataValida(data)) return res.status(400).json({ erro: 'Informe uma data de entrega válida.' })
 
-  const doacao = dados.doacoes.find((d) => d.id === entrega.doacaoId)
-  if (doacao && data < doacao.data) {
-    return res.status(400).json({ erro: `A data da entrega não pode ser anterior ao recebimento da doação (${doacao.data}).` })
-  }
-
-  Object.assign(entrega, { beneficiarioId, data, responsavel: responsavel.trim() })
-  salvarDados(dados)
+  const entrega = await atualizarEntrega(id, { beneficiarioId, data, responsavel: responsavel.trim() })
   res.json(entrega)
 })
 
-router.delete('/:id', (req, res) => {
-  const dados = lerDados()
-  const entrega = dados.entregas.find((e) => e.id === req.params.id)
-  if (!entrega) return res.status(404).json({ erro: 'Entrega não encontrada.' })
-
-  dados.entregas = dados.entregas.filter((e) => e.id !== entrega.id)
-  const doacao = dados.doacoes.find((d) => d.id === entrega.doacaoId)
-  if (doacao) doacao.status = 'Disponível'
-  salvarDados(dados)
+router.delete('/:id', async (req, res) => {
+  if (!(await removerEntrega(req.params.id))) return res.status(404).json({ erro: 'Entrega não encontrada.' })
   res.status(204).end()
 })
+
+router.use(responderErro)
 
 export default router

@@ -1,23 +1,11 @@
-import express from 'express'
-import path from 'node:path'
-import beneficiarios from './rotas/beneficiarios.js'
-import doacoes from './rotas/doacoes.js'
-import entregas from './rotas/entregas.js'
-import resumo from './rotas/resumo.js'
-import sistema from './rotas/sistema.js'
+import fs from 'node:fs'
 
-const app = express()
+const ARQUIVO_AMBIENTE = new URL('.env', import.meta.url)
+if (fs.existsSync(ARQUIVO_AMBIENTE)) process.loadEnvFile(ARQUIVO_AMBIENTE)
+
+const { default: app } = await import('./app.js')
+
 const PORTA = process.env.PORT || 3000
-
-app.use(express.json())
-
-app.use('/api/doacoes', doacoes)
-app.use('/api/beneficiarios', beneficiarios)
-app.use('/api/entregas', entregas)
-app.use('/api/resumo', resumo)
-app.use('/api/sistema', sistema)
-
-app.use(express.static(path.join(import.meta.dirname, '..', 'frontend', 'dist')))
 
 app.listen(PORTA, () => {
   console.log(`Servidor rodando em http://localhost:${PORTA}`)
