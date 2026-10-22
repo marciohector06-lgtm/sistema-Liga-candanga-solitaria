@@ -10,13 +10,21 @@ export function Beneficiarios() {
   const [regiao, setRegiao] = useState(REGIOES_ADMINISTRATIVAS_DF[0])
   const [contato, setContato] = useState('')
   const [necessidade, setNecessidade] = useState('')
+  const [erro, setErro] = useState('')
 
   async function handleSubmit(evento) {
     evento.preventDefault()
-    if (!nome.trim()) return
+    if (!nome.trim()) {
+      setErro('O nome é obrigatório.')
+      return
+    }
 
-    const erro = await adicionarBeneficiario({ nome: nome.trim(), tipo, regiao, contato: contato.trim(), necessidade: necessidade.trim() })
-    if (erro) return
+    const resultado = await adicionarBeneficiario({ nome: nome.trim(), tipo, regiao, contato: contato.trim(), necessidade: necessidade.trim() })
+    if (resultado) {
+      setErro(resultado)
+      return
+    }
+    setErro('')
     setNome('')
     setContato('')
     setNecessidade('')
@@ -93,6 +101,7 @@ export function Beneficiarios() {
           >
             Cadastrar beneficiário
           </button>
+          {erro && <p className="mt-2 text-sm text-red-600">{erro}</p>}
         </div>
       </form>
 

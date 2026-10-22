@@ -11,14 +11,22 @@ export function Doacoes() {
   const [quantidade, setQuantidade] = useState('')
   const [origem, setOrigem] = useState('')
   const [data, setData] = useState(hojeLocal)
+  const [erro, setErro] = useState('')
 
   async function handleSubmit(evento) {
     evento.preventDefault()
     const quantidadeNumero = Number(quantidade)
-    if (!quantidadeNumero || quantidadeNumero <= 0 || !origem.trim()) return
+    if (!quantidadeNumero || quantidadeNumero <= 0 || !origem.trim()) {
+      setErro('Preencha a origem e uma quantidade inteira maior que zero.')
+      return
+    }
 
-    const erro = await adicionarDoacao({ categoria, quantidade: quantidadeNumero, origem: origem.trim(), data })
-    if (erro) return
+    const resultado = await adicionarDoacao({ categoria, quantidade: quantidadeNumero, origem: origem.trim(), data })
+    if (resultado) {
+      setErro(resultado)
+      return
+    }
+    setErro('')
     setQuantidade('')
     setOrigem('')
   }
@@ -82,6 +90,7 @@ export function Doacoes() {
           >
             Registrar doação
           </button>
+          {erro && <p className="mt-2 text-sm text-red-600">{erro}</p>}
         </div>
       </form>
 

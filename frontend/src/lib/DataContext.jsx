@@ -1,9 +1,25 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from './supabase'
 
 const DataContext = createContext(null)
 
+async function requisitar(metodo, rota, corpo) {
+  const { data } = await supabase.auth.getSession()
+  const resposta = await fetch(`/api/${rota}`, {
+    method: metodo,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${data.session?.access_token ?? ''}`,
+    },
+    body: JSON.stringify(corpo),
+  })
+  if (resposta.status === 401) await supabase.auth.signOut()
+  return resposta
+}
+
 async function buscar(rota) {
-  const resposta = await fetch(`/api/${rota}`)
+  const resposta = await requisitar('GET', rota)
+  if (!resposta.ok) throw new Error(`Falha ao buscar ${rota}`)
   return resposta.json()
 }
 
@@ -30,11 +46,7 @@ export function DataProvider({ children }) {
   }, [])
 
   async function enviar(metodo, rota, corpo) {
-    const resposta = await fetch(`/api/${rota}`, {
-      method: metodo,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(corpo),
-    })
+    const resposta = await requisitar(metodo, rota, corpo)
     if (!resposta.ok) {
       const { erro } = await resposta.json()
       return erro

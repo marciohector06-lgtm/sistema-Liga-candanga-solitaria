@@ -1,0 +1,6 @@
+.env*
+**/.env*
+backend/supabase
+backend/testes
+backend/dados.json
+docs

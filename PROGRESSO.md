@@ -35,13 +35,34 @@
 - [x] Express serve o frontend compilado, permitindo rodar tudo com um único comando
 - [x] Testado: 22 cenários de regra de negócio na API e renderização das telas com dados vindos do backend
 
+## v3 — Supabase, login da equipe e Vercel
+
+**Status: concluída e em produção em https://liga-candanga-solidaria.vercel.app**
+
+- [x] Arquivo JSON substituído por banco no Supabase (PostgreSQL), com migração SQL em `backend/supabase/migrations/`
+- [x] Regras reforçadas no banco:
+  - restrições de domínio (tipo, região, categoria, status, quantidade);
+  - chaves estrangeiras com `ON DELETE RESTRICT`;
+  - entrega única por doação;
+  - gatilhos de status e de datas;
+  - funções transacionais para registrar e remover entregas
+- [x] Lacunas da v2 fechadas: tipo, região, categoria e datas validados no servidor; entrega para beneficiário inexistente recusada
+- [x] RLS ativo sem políticas: só a API (chave secreta) acessa os dados
+- [x] Login da equipe com Supabase Auth (e-mail e senha), sem auto-cadastro; API responde 401 sem token válido; botão "Sair"
+- [x] API separada em `app.js` (exportável) e `server.js` (local); `api/index.js` publica o app como Vercel Function
+- [x] `hojeLocal()` no fuso de Brasília, para não registrar a data errada em servidor UTC
+- [x] Testes automatizados: 35 testes `node:test` da API contra o Supabase local
+- [x] Teste no navegador (largura de celular): login, cadastro de beneficiário, doação, entrega, dashboard e saída
+- [x] Projeto Supabase de produção criado (região São Paulo) e migração aplicada
+- [x] Deploy na Vercel e quatro fluxos de aceite validados no site com conta real
+- [x] Correção: telas de cadastro de Doações e Beneficiários passam a mostrar a mensagem de erro (da API ou de campo só com espaços)
+
 ## Próximas fases
 
-- [ ] Trocar o arquivo JSON por banco de dados (PostgreSQL/Supabase)
 - [ ] Mapa interativo (Leaflet.js) dos bairros atendidos
-- [ ] Autenticação da equipe — importante: hoje a tela Configurações fica aberta para qualquer pessoa com o link
-- [ ] Deploy (Render ou Railway)
+- [ ] Indicadores por quantidade de itens e por beneficiários atendidos
 - [ ] Relatório de impacto exportável
+- [ ] Lista completa das 35 regiões administrativas do DF
 
 ## Decisões tomadas
 
@@ -51,6 +72,9 @@
 - **Proxy do Vite** (`/api` → `localhost:3000`) no desenvolvimento, evitando configuração de CORS.
 - **HashRouter**: permite que o Express sirva o frontend sem precisar de rota coringa.
 - Doação tratada como lote único (sem fracionamento entre beneficiários).
+- **v3 — Express mantido como Vercel Function**: as regras continuam no servidor e a API não mudou de contrato. O frontend só usa o Supabase para o login.
+- **v3 — Chave secreta só no servidor + RLS sem políticas**: a chave pública não acessa dados, mesmo que alguém a extraia do frontend.
+- **v3 — Contas de hospedagem**: o Supabase e a Vercel (equipe CursosEad) estão em contas pessoais do coordenador da equipe. A transferência para contas da Liga ao fim do projeto ainda precisa ser combinada.
 
 ## Observação para quem usa Windows
 

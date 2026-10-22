@@ -1,16 +1,19 @@
 import { Router } from 'express'
-import { dadosExemplo, salvarDados } from '../banco.js'
+import { apagarTudo, restaurarExemplo } from '../banco.js'
+import { responderErro } from '../erros.js'
 
 const router = Router()
 
-router.post('/restaurar-exemplo', (req, res) => {
-  salvarDados(dadosExemplo())
+router.post('/restaurar-exemplo', async (req, res) => {
+  await restaurarExemplo()
   res.status(204).end()
 })
 
-router.post('/apagar-tudo', (req, res) => {
-  salvarDados({ doacoes: [], beneficiarios: [], entregas: [] })
+router.post('/apagar-tudo', async (req, res) => {
+  await apagarTudo()
   res.status(204).end()
 })
+
+router.use(responderErro)
 
 export default router

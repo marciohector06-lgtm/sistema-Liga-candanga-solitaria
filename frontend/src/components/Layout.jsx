@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 const LINKS = [
   { to: '/', label: 'Dashboard', end: true },
@@ -36,6 +37,13 @@ export function Layout() {
                 {link.label}
               </NavLink>
             ))}
+            <button
+              type="button"
+              onClick={() => supabase.auth.signOut()}
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              Sair
+            </button>
           </nav>
         </div>
       </header>
