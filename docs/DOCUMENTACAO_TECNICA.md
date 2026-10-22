@@ -5,7 +5,7 @@
 **Professora:** Juliana Olinda Martins Pequeno
 **Instituição parceira:** Liga Candanga de Futsal do DF — QI 08, Conjunto I, Lote 74, Guará I, Brasília/DF
 **Versão do sistema documentada:** v3 (conforme `PROGRESSO.md`), em produção em https://liga-candanga-solidaria.vercel.app
-**Situação deste documento:** Completo — Seções 1 a 12 (Seções 10 a 12 para revisão)
+**Situação deste documento:** Completo — Seções 1 a 12. Atualizado em 22/10/2026
 
 ---
 
@@ -24,7 +24,7 @@ Este documento descreve **somente o que está implementado no código-fonte** da
 
 Com a v3, a divergência deixou de existir e o texto do Projeto de Extensão sobre Vercel e Supabase passou a corresponder ao sistema.
 
-As Seções 1 a 6 descrevem a v3. Comparações com a v2 aparecem só onde ajudam a mostrar a evolução do sistema: requisitos atendidos (2.4), lacunas fechadas (3.6) e novas recusas da API (6.6).
+Todas as seções descrevem a v3. Comparações com versões anteriores aparecem só onde ajudam a mostrar a evolução do sistema: requisitos atendidos (2.4), lacunas fechadas (3.6), novas recusas da API (6.6), histórico de versões (8.1) e defeitos corrigidos (9.7).
 
 ---
 
@@ -1212,14 +1212,14 @@ Todas as telas, exceto o Login, compartilham o mesmo cabeçalho (`Layout.jsx`): 
 
 ### 8.1 Abordagem incremental
 
-Conforme a Fase 3 do Projeto de Extensão, o sistema foi construído de forma **incremental e iterativa**: primeiro um produto mínimo viável (MVP) com os quatro módulos centrais, depois versões que acrescentaram funções e corrigiram problemas. O histórico abaixo foi reconstruído a partir do `PROGRESSO.md` e de duas cópias do repositório: uma de 28/09/2026, com a v1.1, e a atual.
+Conforme a Fase 3 do Projeto de Extensão, o sistema foi construído de forma **incremental e iterativa**: primeiro um produto mínimo viável (MVP) com os quatro módulos centrais, depois versões que acrescentaram funções e corrigiram problemas. O histórico abaixo foi reconstruído a partir do `PROGRESSO.md`, de uma cópia do repositório de 28/09/2026 e do histórico de *commits* no GitHub.
 
 | Versão | Data | Entregas | Decisões e motivação |
 |---|---|---|---|
-| **v1 — MVP** | Até 28/09/2026 (data exata **[A CONFIRMAR]**) | React + TypeScript + Vite + Tailwind. Cadastro de doações (com status) e de beneficiários, fluxo de entrega e dashboard. Dados guardados no navegador (`localStorage`) | O `localStorage` substituiu temporariamente o Supabase, para validar o fluxo completo sem depender de credenciais. A camada de dados foi isolada em `DataContext.tsx` para facilitar a troca |
-| **v1.1 — Administração e correções** | Até 28/09/2026 | Tela Configurações (editar, remover, buscar); status "Reservada"; aba Sistema. Correções: data no fuso local, layout no celular, tolerância a dados incompletos no navegador, data de entrega anterior ao recebimento | As regras de consistência (não remover doação entregue nem beneficiário com entregas) surgiram junto com a possibilidade de remover registros |
-| **v2 — Backend próprio** | Entre 29/09 e 21/10/2026 (data exata **[A CONFIRMAR]**) | API REST em Node.js + Express; regras de negócio movidas para o servidor; dados em `backend/dados.json`, compartilhados entre usuários; TypeScript substituído por JavaScript | O sistema seria apresentado na disciplina de Programação Web, que trabalha com Node.js e Express. O arquivo JSON simplificava a explicação da persistência no servidor |
-| **v3 — Infraestrutura de produção** | 21 e 22/10/2026 | Banco Supabase (PostgreSQL) com regras reforçadas no banco; login da equipe (Supabase Auth); publicação na Vercel; 35 testes automatizados | Cumprir o que o Projeto de Extensão previa (Supabase e Vercel) e permitir a validação com a Liga em um endereço público, sem expor dados pessoais. A API Express da v2 foi mantida |
+| **v1 — MVP** | Antes de 28/09/2026 (sem *commit* próprio; data exata **[A CONFIRMAR]**) | React + TypeScript + Vite + Tailwind. Cadastro de doações (com status) e de beneficiários, fluxo de entrega e dashboard. Dados guardados no navegador (`localStorage`) | O `localStorage` substituiu temporariamente o Supabase, para validar o fluxo completo sem depender de credenciais. A camada de dados foi isolada em `DataContext.tsx` para facilitar a troca |
+| **v1.1 — Administração e correções** | 28/09/2026 (primeiro *commit* no GitHub, já com a v1.1) | Tela Configurações (editar, remover, buscar); status "Reservada"; aba Sistema. Correções: data no fuso local, layout no celular, tolerância a dados incompletos no navegador, data de entrega anterior ao recebimento | As regras de consistência (não remover doação entregue nem beneficiário com entregas) surgiram junto com a possibilidade de remover registros |
+| **v2 — Backend próprio** | 14/10/2026 (*commit*); integrada ao `main` em 15/10/2026 (PR #1) | API REST em Node.js + Express; regras de negócio movidas para o servidor; dados em `backend/dados.json`, compartilhados entre usuários; TypeScript substituído por JavaScript | O sistema seria apresentado na disciplina de Programação Web, que trabalha com Node.js e Express. O arquivo JSON simplificava a explicação da persistência no servidor |
+| **v3 — Infraestrutura de produção** | 21 e 22/10/2026; publicada e integrada ao `main` em 22/10/2026 (PR #2) | Banco Supabase (PostgreSQL) com regras reforçadas no banco; login da equipe (Supabase Auth); publicação na Vercel; 35 testes automatizados | Cumprir o que o Projeto de Extensão previa (Supabase e Vercel) e permitir a validação com a Liga em um endereço público, sem expor dados pessoais. A API Express da v2 foi mantida |
 
 O percurso mostra uma **refatoração planejada da camada de dados**. A v1 já isolava o acesso aos dados para uma futura troca pelo Supabase. A v2 manteve esse isolamento no servidor (`banco.js`). Por isso, na v3, a migração ficou concentrada em `banco.js` e nas rotas, sem alterar o contrato da API nem as telas de cadastro.
 
@@ -1487,7 +1487,7 @@ Esta seção é dirigida a quem administra o sistema tecnicamente: hoje a equipe
 | Banco de dados e contas de usuário | Supabase | Projeto `liga-candanga-solidaria`, região São Paulo (`sa-east-1`) | Coordenador da equipe (conta pessoal) |
 | Código-fonte | GitHub | Repositório **público** `marciohector06-lgtm/sistema-Liga-candanga-solitaria` | Coordenador da equipe |
 
-**Situação do código-fonte.** O último envio ao GitHub é de 15/10/2026 (versão v2). O código da v3, publicado em 22/10/2026, ainda **não foi enviado ao repositório**: existe apenas no computador do coordenador e no site publicado. Enviá-lo ao GitHub é a primeira ação de manutenção recomendada (Seção 10.6). Como o repositório é público, antes do envio é preciso conferir que nenhum arquivo `.env` está incluído. O `.gitignore` já os exclui.
+**Situação do código-fonte.** O código da v3 está na branch `main` do repositório desde 22/10/2026 (PR #2), o mesmo dia da publicação. Antes do envio, foi conferido que nenhum arquivo `.env` nem chave estava incluído; a senha de teste local foi retirada de `backend/.env.example`; e o `.gitignore` foi corrigido, porque uma linha `.env*` acrescentada pela CLI da Vercel impedia o envio dos modelos `.env.example`. Como o repositório é **público**, essa conferência deve ser repetida a cada envio.
 
 ### 10.2 Configuração do Supabase
 
@@ -1568,7 +1568,7 @@ flowchart LR
 
 | Rotina | Frequência | Como fazer | Responsável |
 |---|---|---|---|
-| Enviar a v3 ao GitHub | **Imediata** (pendente) | Conferir que não há `.env` incluído e enviar o código | Coordenador da equipe |
+| Manter o GitHub igual ao site publicado | A cada publicação | Depois do `vercel deploy --prod`, enviar as alterações ao repositório, conferindo antes que nenhum `.env` ou chave está incluído | Coordenador da equipe |
 | Criar conta para novo integrante | Quando necessário | Supabase › Authentication › Users › Add user | Responsável técnico |
 | Remover acesso de quem saiu da equipe | Quando necessário | Supabase › Authentication › Users › excluir o usuário. As entregas registradas por essa pessoa não são afetadas, porque o campo "responsável" é texto livre | Responsável técnico |
 | Redefinir senha esquecida | Quando necessário | O sistema não tem tela de recuperação de senha. O caminho mais simples é excluir a conta e criá-la de novo com uma senha nova. O envio de e-mail de recuperação pelo painel depende de configurar a URL do site no Supabase **[A CONFIRMAR]** | Responsável técnico |
