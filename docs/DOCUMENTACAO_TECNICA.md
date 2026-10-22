@@ -324,7 +324,6 @@ Lacunas que permanecem na v3 e devem orientar o plano de testes (Seção 9) e as
 |---|---|---|
 | **Operador** | Primário | Integrante da equipe da Liga que registra as ações do dia a dia: cadastra beneficiários, registra doações e entregas e consulta o dashboard |
 | **Administrador** | Primário (especializa o Operador) | Integrante da equipe da Liga que, além das funções do Operador, corrige e remove registros e gerencia os dados do sistema na tela Configurações |
-
 | **Supabase Auth** | Secundário (sistema externo) | Serviço que verifica e-mail e senha no login e valida a sessão a cada chamada à API |
 
 Os dois atores primários precisam estar autenticados (UC17), mas são **papéis lógicos**: o sistema exige login e não distingue perfis, de modo que toda conta pode executar todos os casos de uso (Seção 1.6). Beneficiários e doadores **não são atores**, porque não interagem com o sistema; eles aparecem apenas como dados registrados pela equipe. A criação de contas é feita pelo responsável técnico no painel do Supabase, fora do sistema.
@@ -332,38 +331,26 @@ Os dois atores primários precisam estar autenticados (UC17), mas são **papéis
 ### 4.2 Diagrama de casos de uso
 
 ```mermaid
-flowchart LR
+flowchart TB
   OP([Operador])
+  AUTH([Supabase Auth])
   AD([Administrador])
-  AD -. especializa .-> OP
 
-  subgraph S[Sistema Liga Candanga Solidária]
-    UC01((UC01 Consultar dashboard))
-    UC02((UC02 Cadastrar beneficiário))
-    UC03((UC03 Consultar beneficiários))
-    UC04((UC04 Registrar doação))
-    UC05((UC05 Consultar doações))
-    UC06((UC06 Registrar entrega))
-    UC07((UC07 Consultar entregas))
-    UC08((UC08 Buscar registros))
-    UC09((UC09 Editar doação))
-    UC10((UC10 Remover doação))
-    UC11((UC11 Editar beneficiário))
-    UC12((UC12 Remover beneficiário))
-    UC13((UC13 Editar entrega))
-    UC14((UC14 Remover entrega))
-    UC15((UC15 Restaurar dados de exemplo))
-    UC16((UC16 Apagar todos os dados))
-    UC17((UC17 Entrar no sistema))
-    UC18((UC18 Sair do sistema))
+  subgraph OPS[Operação do dia a dia]
+    direction TB
+    UC17([UC17 Entrar no sistema]) ~~~ UC01([UC01 Consultar dashboard]) ~~~ UC03([UC03 Consultar beneficiários]) ~~~ UC05([UC05 Consultar doações]) ~~~ UC07([UC07 Consultar entregas])
+    UC18([UC18 Sair do sistema]) ~~~ UC02([UC02 Cadastrar beneficiário]) ~~~ UC04([UC04 Registrar doação]) ~~~ UC06([UC06 Registrar entrega])
   end
 
-  AUTH([Supabase Auth])
+  subgraph ADM[Área do administrador]
+    direction TB
+    UC08([UC08 Buscar registros]) ~~~ UC09([UC09 Editar doação]) ~~~ UC11([UC11 Editar beneficiário]) ~~~ UC13([UC13 Editar entrega]) ~~~ UC15([UC15 Restaurar dados de exemplo])
+    UC10([UC10 Remover doação]) ~~~ UC12([UC12 Remover beneficiário]) ~~~ UC14([UC14 Remover entrega]) ~~~ UC16([UC16 Apagar todos os dados])
+  end
 
-  OP --- UC17 & UC18
-  OP --- UC01 & UC02 & UC03 & UC04 & UC05 & UC06 & UC07
-  AD --- UC08 & UC09 & UC10 & UC11 & UC12 & UC13 & UC14 & UC15 & UC16
-  UC17 --- AUTH
+  OP --- OPS
+  AUTH -. valida o login .- OPS
+  AD --- ADM
 ```
 
 ### 4.3 Lista de casos de uso
@@ -830,30 +817,31 @@ O sistema segue uma arquitetura **cliente-servidor em três camadas**, com dois 
 A comunicação usa HTTPS e JSON. A API responde 401 sem login válido e 400 com `{ "erro": "mensagem" }` quando uma regra impede a operação.
 
 ```mermaid
-flowchart LR
-  subgraph N[Navegador: celular ou computador]
+flowchart TB
+  subgraph N[Navegador]
     UI[Telas React<br/>pages/ e components/]
-    DC[DataContext.jsx<br/>chamadas à API com token]
     SB[lib/supabase.js<br/>login e sessão]
-    UI --> DC
-    UI --> SB
+    DC[DataContext.jsx<br/>chamadas à API com token]
   end
   subgraph V[Vercel]
     CDN[Arquivos estáticos<br/>frontend/dist]
     FN[Função api/index.js<br/>app Express]
     MW[autenticacao.js<br/>exigirAutenticacao]
     R[rotas/ e banco.js]
-    FN --> MW --> R
   end
   subgraph S[Supabase - São Paulo]
     AUTH[Supabase Auth]
     DB[(PostgreSQL<br/>tabelas, gatilhos,<br/>funções, RLS)]
   end
-  CDN -. "HTML, JS, CSS" .-> N
-  SB -- "login: chave pública" --> AUTH
-  DC -- "HTTPS /api/... + Bearer token" --> FN
-  MW -- "valida token" --> AUTH
-  R -- "chave secreta" --> DB
+  UI --> SB
+  UI --> DC
+  CDN -. HTML, JS e CSS .-> UI
+  SB -- login com chave pública --> AUTH
+  DC -- HTTPS /api + token --> FN
+  FN --> MW
+  MW -- valida token --> AUTH
+  MW --> R
+  R -- chave secreta --> DB
 ```
 
 ### 6.2 Tecnologias
@@ -1238,7 +1226,7 @@ flowchart LR
   T -->|ok| E[Entrega<br/>da versão]
 ```
 
-**Prompts das versões v1 e v2.** Os prompts usados nessas versões não estão registrados no repositório. A equipe deve transcrevê-los no Apêndice A, na ordem prevista no Projeto de Extensão: definição do sistema, banco de dados, telas de cadastro, registro de doações e entregas, dashboard e ajustes pós-validação. **[A CONFIRMAR — a equipe deve fornecer os prompts]**
+**Prompts das versões v1 e v2.** As conversas originais dessas versões foram feitas em uma conta do assistente que não está mais acessível. Por isso, os prompts do Apêndice A (itens A.1 a A.9) foram **reconstruídos** pela equipe a partir do que o código de cada versão contém, e estão identificados como tal. Eles representam o conteúdo do que foi pedido, não a transcrição literal.
 
 **Prompts da versão v3.** A v3 e esta documentação foram produzidas em uma sessão registrada do Claude Code, em 21 e 22/10/2026. Os principais pedidos do coordenador da equipe foram:
 
@@ -1737,3 +1725,167 @@ O projeto aplicou conteúdos de oito disciplinas do curso de Análise e Desenvol
 - **Programação Web:** a API traduz o erro do banco em uma mensagem amigável;
 - **Testes de Software:** um teste automatizado garante a regra mesmo com duas tentativas simultâneas (CT25);
 - **IHC/UX:** a tela mostra a mensagem ao usuário (Seção 11.9).
+
+---
+
+## Apêndice A — Prompts utilizados no desenvolvimento do sistema
+
+### A.0 Nota sobre a origem dos prompts
+
+Os prompts deste apêndice têm **duas origens diferentes**, identificadas em cada item:
+
+| Versões | Origem | Grau de fidelidade |
+|---|---|---|
+| v1, v1.1 e v2 (A.1 a A.9) | **Prompts reconstruídos.** As conversas originais foram feitas em uma conta do assistente que não está mais acessível, e o texto exato dos pedidos se perdeu. Em 22/10/2026, a equipe reconstruiu cada prompt a partir do que o código de cada versão efetivamente contém, usando o `README.md` e o `PROGRESSO.md` de cada versão e o histórico de *commits* no GitHub. A reconstrução teve o apoio do próprio assistente de IA | Representam **o conteúdo** do que foi pedido, comprovado pelo código. **Não** são a transcrição literal dos pedidos originais |
+| v3 (A.10 a A.14) | **Pedidos registrados.** Feitos na sessão do Claude Code de 21 e 22/10/2026 | Texto original do coordenador, reproduzido sem correções |
+
+Os itens seguem a ordem prevista no Projeto de Extensão: definição do sistema, banco de dados, telas de cadastro, registro de doações e entregas, dashboard e ajustes.
+
+| Item | Versão | Etapa | Evidência no código |
+|---|---|---|---|
+| A.1 | v1 | Definição do sistema | `README.md` da v1 (stack, `HashRouter`, `localStorage` como substituto do Supabase); `DataContext.tsx` |
+| A.2 | v1 | Modelo de dados ("banco de dados") | `src/lib/types.ts` e `src/lib/seed.ts` da v1 |
+| A.3 | v1 | Telas de cadastro | `pages/Beneficiarios.tsx` e `pages/Doacoes.tsx` |
+| A.4 | v1 | Registro de entregas | `pages/Entregas.tsx`; função `registrarEntrega` |
+| A.5 | v1 | Dashboard | `pages/Dashboard.tsx`; tipo `ResumoImpacto` |
+| A.6 | v1.1 | Área do administrador | `pages/configuracoes/` (*commit* de 28/09/2026) |
+| A.7 | v1.1 | Ajustes | Seção "Correções" do `PROGRESSO.md` da v1.1 |
+| A.8 | v2 | Backend e banco no servidor | `backend/` (*commit* de 14/10/2026) |
+| A.9 | v2 | Testes da v2 | `PROGRESSO.md` da v2 ("Testado: 22 cenários...") |
+| A.10 a A.14 | v3 | Documentação, migração, correção e atualização | Sessão de 21 e 22/10/2026; PRs #2 e #3 |
+
+---
+
+### A.1 Definição do sistema (v1) — reconstruído
+
+> Você vai me ajudar a desenvolver o protótipo de um sistema web para o programa "Liga Candanga Solidária", da Liga Candanga de Futsal do DF. O sistema faz parte de um projeto de extensão da UCB alinhado ao ODS 10 (Redução das Desigualdades). O problema é que as ações sociais da Liga, como a arrecadação de cestas básicas e de materiais esportivos para famílias, escolinhas de futsal e instituições, acontecem de forma pontual, sem cadastro dos beneficiários e sem registro que permita medir o impacto.
+>
+> Crie o projeto com Vite, React, TypeScript e Tailwind CSS v4 (pelo plugin `@tailwindcss/vite`). Use React Router com `HashRouter`, para que o sistema funcione em qualquer hospedagem estática sem configuração extra. Toda a interface deve estar em português e funcionar bem no celular. O sistema terá quatro telas, acessadas por um menu no topo: Dashboard, Doações, Beneficiários e Entregas.
+>
+> O banco definitivo será o Supabase, mas ainda não temos as credenciais. Nesta primeira versão, guarde os dados no `localStorage` do navegador. Concentre todo o acesso a dados em um único arquivo (`DataContext`), com funções que tenham a mesma assinatura que teriam usando o Supabase, para que a troca depois não exija mudar as telas. Crie também o `README.md` (stack, como rodar, estrutura de pastas e próximos passos) e o `PROGRESSO.md` (fases e situação de cada uma).
+
+### A.2 Modelo de dados (v1) — reconstruído
+
+> Defina os tipos de dados do sistema em um arquivo `types.ts`:
+>
+> - **Doação**: id, categoria, quantidade, origem (equipe, torcida ou parceiro que doou), data de recebimento e status. As categorias são Cesta básica, Bola, Rede, Troféu e Uniforme. Os status são Disponível, Reservada e Entregue.
+> - **Beneficiário**: id, nome, tipo (Família, Escolinha ou Instituição), região administrativa, contato, necessidade principal e data de cadastro. As regiões são as RAs onde a Liga atua: Ceilândia, Guará, Taguatinga, Samambaia, Planaltina, Recanto das Emas, Santa Maria e São Sebastião.
+> - **Entrega**: id, id da doação, id do beneficiário, data e nome do responsável pela entrega.
+> - **Resumo de impacto**: total de doações, doações disponíveis, total de beneficiários, total de entregas, doações por categoria e beneficiários por região.
+>
+> Trate cada doação como um lote único, entregue inteiro a um só beneficiário, sem fracionar a quantidade. Crie dados de exemplo para o primeiro acesso, com o nome dos beneficiários marcado com "(exemplo)": algumas doações de categorias diferentes, uma escolinha, uma família e uma instituição, e duas entregas.
+
+### A.3 Telas de cadastro (v1) — reconstruído
+
+> Crie as telas de Beneficiários e de Doações. Cada uma deve ter um formulário no alto e, abaixo, a lista dos registros.
+>
+> - **Beneficiários**: campos Nome (obrigatório), Tipo, Região administrativa, Contato ("Telefone ou e-mail") e Necessidade principal. A data de cadastro é preenchida automaticamente. Depois de cadastrar, limpe nome, contato e necessidade, mas mantenha tipo e região, para agilizar cadastros em sequência. A lista mostra os mais recentes primeiro.
+> - **Doações**: campos Categoria, Quantidade (inteiro maior que zero), Origem e Data de recebimento, já preenchida com a data de hoje. Toda doação nasce com status Disponível. A lista mostra os registros do mais recente para o mais antigo, com o status em uma etiqueta colorida: azul para Disponível, âmbar para Reservada e verde para Entregue.
+>
+> Use componentes reutilizáveis para o campo com rótulo, a etiqueta de status e o layout com o menu. Nas tabelas, permita rolagem horizontal no celular.
+
+### A.4 Registro de doações e entregas (v1) — reconstruído
+
+> Crie a tela de Entregas, que vincula uma doação a um beneficiário. O formulário tem:
+>
+> - uma lista de seleção só com as doações de status Disponível, no formato "categoria · quantidade un. · origem";
+> - uma lista de beneficiários, no formato "nome · região";
+> - o nome do responsável pela entrega;
+> - a data da entrega, com a data de hoje como padrão.
+>
+> Ao registrar a entrega, a doação deve mudar automaticamente para Entregue e sair da lista de disponíveis. Se não houver doações disponíveis ou beneficiários, desabilite o botão e explique o motivo. Abaixo do formulário, liste as entregas da mais recente para a mais antiga, com data, doação, beneficiário e responsável.
+
+### A.5 Dashboard (v1) — reconstruído
+
+> Crie a tela inicial "Resumo de impacto", com:
+>
+> - quatro cartões de indicadores: Doações recebidas, Doações disponíveis, Beneficiários cadastrados e Entregas realizadas;
+> - a lista de doações por categoria, mostrando as cinco categorias mesmo quando o valor for zero;
+> - a lista de beneficiários por região administrativa;
+> - uma tabela com as cinco últimas entregas.
+>
+> Calcule o resumo a partir dos dados guardados, para que os números se atualizem sozinhos a cada novo registro.
+
+### A.6 Área do administrador (v1.1) — reconstruído
+
+> Crie uma tela de Configurações, a "área do administrador", com as abas Doações, Beneficiários, Entregas e Sistema. A aba ativa deve ficar no endereço.
+>
+> Nas três primeiras abas, mostre uma tabela com campo de busca e, em cada linha, os botões Editar, que abre uma janela com o formulário, e Remover, que pede confirmação e avisa que a ação não pode ser desfeita. A edição de doação deve permitir mudar o status para Reservada. A edição de entrega não deve permitir trocar a doação.
+>
+> Para manter os dados consistentes, aplique estas regras e mostre uma mensagem clara quando uma delas impedir a operação:
+>
+> - não remover doação que já tenha entrega;
+> - não remover beneficiário que tenha entregas;
+> - remover uma entrega devolve a doação para Disponível;
+> - uma doação só pode ficar Entregue registrando uma entrega;
+> - doação com entrega não pode mudar de status.
+>
+> Na aba Sistema, mostre os totais armazenados e uma "Zona de risco" com dois botões, cada um com confirmação: restaurar os dados de exemplo e apagar todos os dados. As janelas devem fechar com a tecla Esc e com um clique fora delas.
+
+### A.7 Ajustes (v1.1) — reconstruído
+
+> Corrija os problemas encontrados nos testes da equipe:
+>
+> 1. Depois das 21h em Brasília, a data padrão dos formulários aparece como o dia seguinte. Use a data no fuso local, e não em UTC.
+> 2. No celular, o menu e as tabelas quebram o layout. O menu e as tabelas devem rolar na horizontal.
+> 3. Se o `localStorage` tiver dados incompletos ou em formato antigo, o sistema fica com a tela em branco. Nesse caso, carregue os dados de exemplo.
+> 4. É possível registrar uma entrega com data anterior ao recebimento da doação. Impeça isso no formulário, com a data mínima no campo, e na regra de negócio.
+
+*Observação:* o Projeto de Extensão prevê "ajustes pós-validação", feitos depois do teste com a Liga. Os ajustes da v1.1 vieram de testes da própria equipe, porque a validação com a Liga ainda não estava registrada (Seção 9.4).
+
+### A.8 Backend e banco de dados no servidor (v2) — reconstruído
+
+> O sistema vai ser apresentado na disciplina de Programação Web, que trabalha com Node.js e Express. Reorganize o projeto em duas pastas:
+>
+> - **`backend/`**: uma API REST em Node.js com Express 5, com rotas para doações, beneficiários e entregas (listar, cadastrar, editar e remover), uma rota de resumo para o dashboard e uma rota de sistema para restaurar os exemplos e apagar tudo. Todas as regras de negócio passam para o servidor, que é a fonte da verdade. Quando uma regra impedir a operação, a API responde 400 com `{ "erro": "mensagem" }`. Os dados ficam em um arquivo `backend/dados.json`, compartilhado entre todos os usuários, com todo o acesso concentrado em `banco.js`, para facilitar a troca futura por um banco de dados. Se o arquivo não existir, use os dados de exemplo.
+> - **`frontend/`**: as telas atuais, consumindo a API com `fetch` e exibindo a mensagem de erro que a API devolver. As telas e as mensagens devem continuar iguais.
+>
+> Remova o TypeScript e deixe todo o código em JavaScript. No desenvolvimento, configure o *proxy* do Vite para `/api`, evitando configurar CORS. No modo de apresentação, o Express também serve o frontend compilado, para tudo rodar com um único comando. Atualize o `README.md` (como rodar, rotas da API e regras) e o `PROGRESSO.md`.
+
+### A.9 Testes da v2 — reconstruído
+
+> Teste as regras de negócio diretamente na API, cobrindo cadastros válidos e inválidos, entrega de doação não disponível, entrega com data anterior ao recebimento, mudança de status com e sem entrega, remoções bloqueadas e a devolução da doação ao remover a entrega. Depois, confira que as telas mostram os dados vindos do backend. Registre o resultado no `PROGRESSO.md`.
+
+*Observação:* o `PROGRESSO.md` da v2 registra "22 cenários de regra de negócio na API", mas o roteiro e os resultados desses testes não estão no repositório (Seção 8.3).
+
+---
+
+### A.10 Documentação técnica (v3) — pedido registrado, trechos principais
+
+> Leia todo o código e o esquema do banco ANTES de escrever. Documente somente o que realmente existe no sistema. Se algo não estiver claro no código, marque como [A CONFIRMAR] em vez de inventar.
+>
+> Gere a documentação técnica completa em português, com linguagem acadêmica, nesta estrutura: [12 seções, da visão geral às disciplinas do curso].
+>
+> Trabalhe por partes: apresente primeiro os requisitos (seções 1 a 3) para eu revisar antes de seguir.
+
+*Resultado:* a leitura do código mostrou que a v2 não usava Supabase nem Vercel. A decisão inicial foi documentar o sistema como estava (Seção 8.2).
+
+### A.11 Migração para Supabase e Vercel (v3) — pedido registrado
+
+> ja vamos configurar o sistema no supabase e no vercel ja instala a cli e começa com um agente duplo
+
+Decisões tomadas pelo coordenador ao aprovar o plano de migração:
+
+| Pergunta do assistente | Resposta escolhida |
+|---|---|
+| Qual arquitetura usar na Vercel? | Express como função da Vercel |
+| Incluir login da equipe (Supabase Auth) já nesta migração? | Sim, já agora |
+| O que significa "agente duplo"? | Dois agentes em paralelo |
+
+*Resultado:* plano aprovado. Agente A ficou com o banco, a camada de dados e os testes; Agente B, com a Vercel e o login. A integração e a publicação foram feitas em seguida (Seções 8.2 e 8.3).
+
+### A.12 Correção do CT43 (v3) — pedido registrado
+
+> Corrige antes o CT43: fazer as telas de cadastro de Doações e Beneficiários mostrarem a mensagem de erro da API, testar e publicar.
+
+*Resultado:* correção testada no navegador e publicada em 22/10/2026 (Seção 9.7).
+
+### A.13 Atualização da documentação para a v3 — pedido registrado
+
+> Sim, atualiza as seções 1 a 4 para a v3, corrigindo os pontos listados na nota preliminar.
+
+### A.14 Envio ao GitHub (v3) — pedido registrado
+
+> Sim, envia a v3 ao GitHub, conferindo que nenhum .env vai junto e tirando a senha de teste do backend/.env.example.
+
+*Resultado:* PR #2, integrado ao `main` em 22/10/2026 (Seção 10.1).
