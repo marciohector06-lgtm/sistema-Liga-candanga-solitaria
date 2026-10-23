@@ -1264,7 +1264,7 @@ O código gerado pela IA não foi aceito sem verificação. As práticas abaixo 
 
 **Lição registrada.** Na primeira publicação, a Vercel enviou a versão direto para produção, e não para um ambiente de teste (*preview*), porque esse é o comportamento padrão no primeiro deploy de um projeto. Como o site já exigia login e o banco estava vazio, não houve exposição de dados. Ainda assim, o caso mostra que até ferramentas confiáveis exigem conferência humana dos efeitos de cada comando.
 
-**Versões anteriores.** O `PROGRESSO.md` registra testes nas versões v1 ("testado ponta a ponta") e v2 ("22 cenários de regra de negócio na API"), mas os roteiros e resultados desses testes não estão no repositório. **[A CONFIRMAR]**
+**Versões anteriores.** O `PROGRESSO.md` registra testes nas versões v1 ("testado ponta a ponta") e v2 ("22 cenários de regra de negócio na API"), mas os roteiros e resultados originais não foram guardados. Em 23/10/2026, a equipe escreveu novos roteiros a partir do código de cada versão e os executou sobre o código original recuperado do histórico do GitHub: 30 testes automatizados na v2 e 17 cenários no navegador na v1.1, todos com o resultado esperado (Seção 9.8).
 
 ---
 
@@ -1277,6 +1277,7 @@ O código gerado pela IA não foi aceito sem verificação. As práticas abaixo 
 | Testes automatizados da API | Verificar regras de negócio, contratos HTTP e segurança do banco | `node:test`, contra o Supabase local (`backend/testes/api.test.js`) | 35 testes, todos aprovados |
 | Testes manuais de interface | Verificar telas, mensagens e uso no celular | Equipe técnica, no navegador | Fluxo principal executado; demais casos pendentes (Seção 9.3) |
 | Testes de segurança | Verificar que nada é acessível sem login | Equipe técnica, contra o site publicado | Executados e aprovados em 22/10/2026 |
+| Testes das versões anteriores | Registrar o comportamento da v1.1 e da v2, cujos testes originais não foram guardados | `node:test` contra a API da v2 e roteiro no navegador para a v1.1, sobre o código recuperado do GitHub | Executados em 23/10/2026: v2 com 30 de 30 aprovados; v1.1 com 17 de 17 (Seção 9.8) |
 | Testes de aceitação com a Liga | Confirmar que a Liga usa o sistema sem ajuda (Fase 4 do projeto) | Representantes da Liga, com roteiro e ficha de validação | **[A CONFIRMAR — ainda não registrados]** |
 
 Os testes automatizados cobrem a API e o banco, mas **não a interface**: não há testes automatizados de tela. Os comportamentos garantidos só pela interface (RN12, RN20, RN24, RNF01, RNF06 e RNF07) dependem de testes manuais.
@@ -1460,6 +1461,84 @@ Assinatura do participante: ______________________ Assinatura do observador: ___
 | v3 | A data atual seria calculada em UTC no servidor da Vercel (o mesmo problema da v1.1, agora no backend) | `hojeLocal()` no fuso `America/Sao_Paulo` (CT33) |
 | v3 | A configuração local do Supabase desligava o login por e-mail | Corrigida na integração (Seção 8.3) |
 | v3 | As telas de cadastro de Doações e Beneficiários não exibiam a mensagem de erro da API, nem avisavam quando o campo obrigatório tinha só espaços | Mensagem exibida abaixo do botão, no mesmo padrão da tela de Entregas; corrigido e publicado em 22/10/2026 (CT43) |
+
+### 9.8 Testes das versões anteriores (v1.1 e v2)
+
+Os roteiros e resultados dos testes feitos durante o desenvolvimento da v1 e da v2 não foram guardados; restou apenas o registro no `PROGRESSO.md`. Para que a evolução do sistema tenha evidência verificável, a equipe escreveu **novos roteiros**, derivados do código de cada versão, e os **executou em 23/10/2026** sobre o código original, recuperado do histórico do GitHub. Por isso, os resultados abaixo descrevem o comportamento real de cada versão. Eles não reproduzem os testes da época.
+
+| Versão | Código testado | Como foi testado | Resultado |
+|---|---|---|---|
+| v1.1 | *Commit* `0c9d2e4` (28/09/2026). A v1 original não tem *commit* próprio: o primeiro registro no GitHub já é a v1.1 | Roteiro manual no navegador (Chrome), com o servidor de desenvolvimento do Vite, partindo do navegador sem dados salvos. *Build* (`tsc -b && vite build`) e *lint* (`oxlint`) | 17 de 17 cenários com o resultado esperado. *Build* sem erros; *lint* com 1 aviso e nenhum erro |
+| v2 | *Commit* `31deedb` (14/10/2026) | 30 testes automatizados `node:test` (`docs/testes-versoes/v2_api.test.mjs`), que iniciam o servidor Express da v2 com os dados de exemplo e chamam a API por HTTP | 30 aprovados, 0 falhas. Destes, 26 confirmam regras de negócio e 4 confirmam lacunas conhecidas |
+
+#### 9.8.1 Roteiro da v1.1 (navegador)
+
+| ID | Cenário | Resultado esperado | Resultado obtido |
+|---|---|---|---|
+| TV1-01 | Abrir o sistema pela primeira vez, sem dados salvos | Dashboard com os dados de exemplo: 6 doações, 3 disponíveis, 3 beneficiários, 2 entregas | Aprovado |
+| TV1-02 | Registrar doação válida (Bola, 5 un., origem com espaços nas pontas) | Doação gravada com status "Disponível", origem sem os espaços e data de hoje | Aprovado |
+| TV1-03 | Registrar doação com origem só com espaços | Doação não gravada | Aprovado. Nenhuma mensagem é exibida (corrigido na v3, CT43) |
+| TV1-04 | Cadastrar beneficiário com nome só com espaços | Cadastro não gravado | Aprovado. Nenhuma mensagem é exibida (corrigido na v3, CT43) |
+| TV1-05 | Cadastrar beneficiário válido (Escolinha, Taguatinga) | Gravado com a data de cadastro de hoje | Aprovado |
+| TV1-06 | Abrir a lista de doações da tela Entregas | Só aparecem doações "Disponível"; as "Reservada" e "Entregue" ficam de fora | Aprovado |
+| TV1-07 | Registrar entrega com data anterior ao recebimento da doação | Entrega bloqueada | Aprovado. O próprio campo de data impede o envio ("O valor deve ser 12/09/2026 ou posterior") |
+| TV1-08 | Registrar entrega válida | Entrega gravada; a doação passa a "Entregue" e sai da lista de disponíveis | Aprovado |
+| TV1-09 | Recarregar a página e conferir o dashboard | Dados mantidos; dashboard com 7 doações, 3 disponíveis, 4 beneficiários e 3 entregas | Aprovado |
+| TV1-10 | Configurações: remover doação já entregue | Remoção recusada com "Esta doação já foi entregue. Remova a entrega antes de remover a doação." | Aprovado |
+| TV1-11 | Configurações: editar doação disponível para "Entregue" | Recusado com "Para marcar como Entregue, registre uma entrega na tela de Entregas." | Aprovado |
+| TV1-12 | Configurações: editar doação disponível para "Reservada" | Status alterado | Aprovado |
+| TV1-13 | Configurações: remover beneficiário com entregas | Recusado com "Este beneficiário tem 2 entrega(s) registrada(s). Remova as entregas antes." | Aprovado |
+| TV1-14 | Configurações: editar entrega para data anterior ao recebimento | Alteração bloqueada | Aprovado. Bloqueada pelo campo de data |
+| TV1-15 | Configurações: remover entrega | Entrega removida; a doação volta para "Disponível" | Aprovado |
+| TV1-16 | Sistema: "Apagar tudo" e depois "Restaurar exemplo", com confirmação | Sistema vazio (0, 0, 0) e depois de volta aos dados de exemplo (6, 3, 2) | Aprovado |
+| TV1-17 | Tela Entregas em largura de celular (375 px) | Formulário em uma coluna, sem rolagem horizontal da página | Aprovado |
+
+**Limitação observada.** Na v1.1, os dados ficam só no navegador (`localStorage`, chave `liga-candanga-solidaria:v1`). Apagar os dados do navegador devolve o sistema aos dados de exemplo, e cada aparelho vê dados diferentes. Isso motivou a v2.
+
+#### 9.8.2 Roteiro da v2 (API)
+
+| ID | Cenário | Resultado esperado | Resultado obtido |
+|---|---|---|---|
+| TV2-01 | Cadastrar doação válida | 201; status "Disponível"; origem aparada; id `doacao-...` | Aprovado |
+| TV2-02 | Doação com origem só com espaços | 400 "Preencha a origem e uma quantidade inteira maior que zero." | Aprovado |
+| TV2-03 | Quantidade 0, -1, 2,5 ou "3" (texto) | 400 em todos os casos | Aprovado |
+| TV2-04 | Editar doação inexistente | 404 | Aprovado |
+| TV2-05 | Marcar como "Entregue" uma doação sem entrega | 400 "Para marcar como Entregue, registre uma entrega na tela de Entregas." | Aprovado |
+| TV2-06 | Mudar o status de uma doação que já tem entrega | 400 "Esta doação já tem uma entrega registrada..." | Aprovado |
+| TV2-07 | Data de recebimento posterior à entrega | 400 "A data de recebimento não pode ser posterior à entrega (2026-09-07)." | Aprovado |
+| TV2-08 | Marcar doação disponível como "Reservada" | 200 | Aprovado |
+| TV2-09 | Remover doação já entregue | 400 "Esta doação já foi entregue..." | Aprovado |
+| TV2-10 | Remover doação sem entrega | 204; some da lista | Aprovado |
+| TV2-11 | Beneficiário sem nome | 400 "O nome é obrigatório." | Aprovado |
+| TV2-12 | Cadastrar beneficiário válido | 201; nome aparado; data de cadastro no formato AAAA-MM-DD | Aprovado |
+| TV2-13 | Editar beneficiário inexistente | 404 | Aprovado |
+| TV2-14 | Remover beneficiário com entregas | 400 "Este beneficiário tem 1 entrega(s) registrada(s)..." | Aprovado |
+| TV2-15 | Remover beneficiário sem entregas | 204 | Aprovado |
+| TV2-16 | Entrega sem responsável | 400 "Selecione a doação, o beneficiário e informe o responsável." | Aprovado |
+| TV2-17 | Entrega de doação "Reservada" | 400 "Esta doação não está disponível para entrega." | Aprovado |
+| TV2-18 | Segunda entrega da mesma doação | 400 | Aprovado |
+| TV2-19 | Entrega com data anterior ao recebimento | 400 "A data da entrega não pode ser anterior ao recebimento da doação (2026-09-12)." | Aprovado |
+| TV2-20 | Registrar entrega válida | 201; a doação passa a "Entregue" | Aprovado |
+| TV2-21 | Editar entrega para data anterior ao recebimento | 400 | Aprovado |
+| TV2-22 | Editar entrega sem responsável | 400 "Informe o responsável pela entrega." | Aprovado |
+| TV2-23 | Remover entrega | 204; a doação volta para "Disponível" | Aprovado |
+| TV2-24 | Resumo com os dados de exemplo | 6 doações, 3 disponíveis, 3 beneficiários, 2 entregas; contagens por categoria e por região corretas | Aprovado |
+| TV2-25 | "Apagar tudo" e "Restaurar exemplo" | Totais zerados e depois restaurados | Aprovado |
+| TV2-26 | Reiniciar o servidor | Os dados continuam (arquivo `dados.json`) | Aprovado |
+| TV2-27 | Doação com categoria fora da lista | Aceita (201): lacuna conhecida | Lacuna confirmada. Fechada na v3 |
+| TV2-28 | Doação sem data | Aceita (201): lacuna conhecida | Lacuna confirmada. Fechada na v3 |
+| TV2-29 | Entrega para beneficiário inexistente | Aceita (201): lacuna conhecida | Lacuna confirmada. Fechada na v3 |
+| TV2-30 | Beneficiário com tipo e região fora das listas | Aceito (201): lacuna conhecida | Lacuna confirmada. Fechada na v3 |
+
+Os testes TV2-27 a TV2-30 verificam o comportamento que a v2 **de fato tinha**, e não o desejado. Eles comprovam as lacunas descritas na Seção 3.6, que a v3 fechou com as restrições do banco e as validações da API.
+
+**Como reproduzir.** Extrair o código da versão com `git archive 31deedb | tar -x -C <pasta>`, instalar as dependências em `<pasta>/backend` (`npm ci`) e rodar:
+
+```
+V2_BACKEND=<pasta>/backend node --test --test-concurrency=1 docs/testes-versoes/v2_api.test.mjs
+```
+
+O roteiro da v1.1 é repetido do mesmo modo, com `git archive 0c9d2e4`, `npm ci` e `npm run dev`, partindo de um navegador sem dados salvos.
 
 ---
 
