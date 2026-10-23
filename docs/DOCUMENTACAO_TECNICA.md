@@ -97,7 +97,7 @@ A v3 também trouxe a infraestrutura prevista no Projeto de Extensão: banco de 
 
 | Grupo | Relação com o sistema |
 |---|---|
-| Equipe da Liga Candanga (diretoria e voluntários responsáveis pelas ações sociais) | **Usuários diretos**: entram com conta própria, cadastram, registram e consultam. Quem exatamente vai operar o sistema: **[A CONFIRMAR com a Liga]** |
+| Equipe da Liga Candanga (diretoria e voluntários responsáveis pelas ações sociais) | **Usuários diretos**: entram com conta própria, cadastram, registram e consultam. Quem vai operar o sistema: um integrante da Liga indicado pela diretoria, capacitado na implantação de 26/10/2026 (nome **[A CONFIRMAR]**) |
 | Famílias em situação de vulnerabilidade, escolinhas de futsal e instituições parceiras das RAs atendidas | **Beneficiários**: são registros do sistema e não o acessam |
 | Equipes filiadas, torcidas e comércio local (doadores) | Aparecem apenas como texto no campo "Origem" das doações |
 | Parceiros, patrocinadores e órgãos públicos | Destinatários indiretos dos indicadores, por meio de relatórios produzidos pela Liga |
@@ -116,7 +116,7 @@ A interface separa duas áreas de uso, o que permite descrever dois **perfis ló
 | Operador (registro do dia a dia) | Dashboard, Doações, Beneficiários, Entregas | Consultar indicadores; cadastrar e listar doações, beneficiários e entregas | Login obrigatório |
 | Administrador | Configurações (abas Doações, Beneficiários, Entregas e Sistema) | Buscar, editar e remover registros; restaurar dados de exemplo; apagar todos os dados | Login obrigatório, sem verificação de perfil. A tela se descreve como "Área do administrador" |
 
-Fora do sistema existe ainda o papel de **responsável técnico**, que administra o projeto no painel do Supabase (cria e bloqueia contas) e na Vercel (publicação e variáveis de ambiente). Quem exerce esse papel depois do projeto de extensão está **[A CONFIRMAR com a Liga]**.
+Fora do sistema existe ainda o papel de **responsável técnico**, que administra o projeto no painel do Supabase (cria e bloqueia contas) e na Vercel (publicação e variáveis de ambiente). Esse papel é exercido por Márcio Henrique Santana Conceição Sodré, coordenador do projeto, também depois do projeto de extensão, até que a Liga indique outra pessoa.
 
 ---
 
@@ -162,11 +162,11 @@ Os números RF18 a RF23 identificam requisitos ainda não atendidos (Seção 2.4
 
 | ID | Categoria | Requisito (como é atendido no código) | Prioridade | Problema | Situação |
 |---|---|---|---|---|---|
-| **RNF01** | Portabilidade e usabilidade | A interface deve funcionar em celular e computador. Atendido com meta *viewport*, *breakpoints* do Tailwind (`sm`, `lg`), tabelas com rolagem horizontal, menu rolável e janelas modais que abrem a partir da base da tela no celular. Corresponde ao critério de aceite 3 do projeto | Essencial | P1 | Atendido. O teste em aparelho real com a Liga está **[A CONFIRMAR]** |
+| **RNF01** | Portabilidade e usabilidade | A interface deve funcionar em celular e computador. Atendido com meta *viewport*, *breakpoints* do Tailwind (`sm`, `lg`), tabelas com rolagem horizontal, menu rolável e janelas modais que abrem a partir da base da tela no celular. Corresponde ao critério de aceite 3 do projeto | Essencial | P1 | Atendido. O teste em aparelho real com a Liga está previsto para 26/10/2026 |
 | **RNF02** | Usabilidade | A interface deve estar em português do Brasil: `lang="pt-BR"`, todos os textos em português e ordenação alfabética com `localeCompare(..., 'pt-BR')` | Essencial | — | Atendido |
 | **RNF03** | Integridade | As regras de negócio devem ser aplicadas no servidor, que é a fonte da verdade. A API recusa operações inválidas com HTTP 400 e `{ "erro": "mensagem" }`, e o banco reforça as regras com restrições, gatilhos e transações (Seção 5.4). A interface repete parte das validações (campos obrigatórios, data mínima) só para orientar o usuário | Essencial | P3 | Atendido |
 | **RNF04** | Persistência e compartilhamento | Os dados devem ficar no servidor e ser compartilhados entre todos os usuários. Atendido com banco PostgreSQL no Supabase, região São Paulo (Seção 5.1). Na v2, o armazenamento era um arquivo JSON | Essencial | P1 | Atendido |
-| **RNF05** | Custo | O sistema não deve gerar custo de licença para a Liga. Todas as dependências são de código aberto (Express, React, React Router, Vite, Tailwind CSS, supabase-js, oxlint). A hospedagem usa o plano Hobby (gratuito) da Vercel | Essencial | P1 | Atendido para software e para a Vercel. O plano do Supabase usado pelo projeto está **[A CONFIRMAR]** |
+| **RNF05** | Custo | O sistema não deve gerar custo de licença para a Liga. Todas as dependências são de código aberto (Express, React, React Router, Vite, Tailwind CSS, supabase-js, oxlint). A hospedagem usa o plano Hobby (gratuito) da Vercel | Essencial | P1 | Atendido. Supabase e Vercel nos planos gratuitos; a contratação de um plano pago fica a critério da Liga |
 | **RNF06** | Usabilidade (retorno ao usuário) | O sistema deve confirmar ações irreversíveis e informar o motivo de operações recusadas. Atendido com janelas de confirmação de remoção, aviso na remoção de entrega, mensagens de erro da API em todos os formulários de cadastro e edição, mensagens de lista vazia e datas pré-preenchidas com o dia atual no fuso local | Importante | — | Atendido. Até 22/10/2026, as telas de cadastro de Doações e Beneficiários não exibiam a mensagem de erro da API (CT43, corrigido) |
 | **RNF07** | Acessibilidade | A interface deve ter recursos básicos de acessibilidade: rótulos (`<label>`) em todos os campos; modais com `role="dialog"`, `aria-modal` e `aria-labelledby`; fechamento com a tecla Esc; botão de fechar com `aria-label`; abas com `role="tab"` e `aria-selected` | Desejável | — | Atendido nos itens citados. Não houve auditoria WCAG **[A CONFIRMAR]** |
 | **RNF08** | Implantação | O sistema deve ser publicado de forma simples e repetível. Em produção, a Vercel serve o frontend e executa a API como função, conforme `vercel.json`. São necessárias quatro variáveis de ambiente (Seção 6.3). Localmente, o Express também pode servir tudo em um único processo | Importante | P1 | Atendido |
@@ -174,7 +174,7 @@ Os números RF18 a RF23 identificam requisitos ainda não atendidos (Seção 2.4
 | **RNF10** | Desempenho e escala | O volume deve ser compatível com o piloto (cerca de 25 famílias e 5 escolinhas, segundo o item 2.6 do projeto). A cada alteração, o frontend recarrega todos os dados, e o resumo é calculado a partir das três tabelas completas. Não há meta de desempenho definida | Desejável | — | **[A CONFIRMAR]**: não há medição registrada |
 | **RNF11** | Segurança (autenticação) | Só usuários com conta podem acessar telas e dados. Login por e-mail e senha no Supabase Auth, sem auto-cadastro; toda rota da API exige token válido e responde 401 sem ele | Essencial | P1, P2 | Atendido (verificado em produção) |
 | **RNF12** | Proteção de dados pessoais (LGPD) | Os dados de beneficiários (nome e contato) só devem ser acessíveis à equipe autorizada. Atendido com login, HTTPS, RLS no banco e armazenamento no Brasil | Essencial | P2 | Parcial: falta definir com a Liga quem pode ver os dados e por quanto tempo são guardados **[A CONFIRMAR]** |
-| **RNF13** | Banco de dados gerenciado | Os dados devem ficar em banco gerenciado, com integridade garantida pelo próprio banco. Atendido com Supabase (PostgreSQL) | Importante | P1 | Atendido. A rotina de cópia de segurança está **[A CONFIRMAR]** |
+| **RNF13** | Banco de dados gerenciado | Os dados devem ficar em banco gerenciado, com integridade garantida pelo próprio banco. Atendido com Supabase (PostgreSQL) | Importante | P1 | Atendido. O plano gratuito não tem *backup* automático; a cópia é manual (Seção 10.6) |
 | **RNF14** | Hospedagem pública | O sistema deve estar acessível pela internet, no celular e no computador. Atendido na Vercel: https://liga-candanga-solidaria.vercel.app | Essencial | P1 | Atendido |
 
 ### 2.4 Requisitos identificados e ainda não atendidos
@@ -199,7 +199,7 @@ Na v2, esta tabela também trazia RNF11 (autenticação), RNF12 (LGPD), RNF13 (b
 
 **P2 — Cadastro (atendido, com ressalvas).** RF01 a RF04 substituem as indicações informais por um cadastro único e compartilhado, com tipo, região e necessidade. Há duas limitações. A lista com 8 RAs impede registrar com precisão beneficiários de outras regiões, justamente o "alcance limitado das demandas" apontado no diagnóstico. E o cadastro é feito só pela equipe da Liga, então instituições sem contato com a Liga continuam fora dele (RF23).
 
-**P1 — Continuidade (atendido, com ressalvas).** O registro persistente e o status das doações ("Disponível", "Reservada", "Entregue") criam um histórico que não depende da memória de uma pessoa e mostram o que ainda falta entregar. Desde a v3, o sistema está publicado na internet (RNF14), protegido por login (RNF11) e com os dados em banco gerenciado (RNF13). Restam três ressalvas. O Supabase e a Vercel estão em contas pessoais do coordenador da equipe, não da Liga; a transferência para contas da instituição ao fim do projeto está **[A CONFIRMAR]**. O plano gratuito do Supabase pode pausar o projeto em períodos sem uso, justamente o intervalo entre campanhas (RNF17). E ainda precisa ser definido quem administrará contas e publicação depois do projeto de extensão (Seção 1.6).
+**P1 — Continuidade (atendido, com ressalvas).** O registro persistente e o status das doações ("Disponível", "Reservada", "Entregue") criam um histórico que não depende da memória de uma pessoa e mostram o que ainda falta entregar. Desde a v3, o sistema está publicado na internet (RNF14), protegido por login (RNF11) e com os dados em banco gerenciado (RNF13). Restam três ressalvas. O Supabase e a Vercel estão em contas pessoais do coordenador da equipe, não da Liga; por decisão da equipe, continuam assim, no plano gratuito, até que a Liga decida assumir as contas ou contratar um plano pago. O plano gratuito do Supabase pausa o projeto depois de 7 dias com pouca atividade, o que pode acontecer no intervalo entre campanhas (RNF17). E a administração técnica depende de uma pessoa, o coordenador do projeto (Seção 1.6).
 
 **P3 — Mensuração (atendido parcialmente; lacuna relevante).** O dashboard (RF13) **conta registros, não itens**. Exemplo com os dados de demonstração: duas doações de cestas básicas, uma com 40 e outra com 25 unidades, aparecem como "Cesta básica: 2", e não 65. Do mesmo modo, "Beneficiários por região" conta beneficiários **cadastrados**, não **atendidos**. As metas do item 2.6 do projeto ("no mínimo 50 cestas básicas e 75 itens esportivos", "cerca de 25 famílias") não podem ser lidas diretamente no painel. Além disso, o cadastro de beneficiário não tem campo para o número de pessoas atendidas, de modo que a meta "cerca de 225 pessoas beneficiadas diretamente" não é mensurável no sistema. RF18 e RF19 tratam essa lacuna.
 
@@ -647,7 +647,7 @@ A partir da versão v3, os dados ficam em um banco **PostgreSQL gerenciado pelo 
 | Ordem das listas | A coluna interna `ordem` (identidade crescente) registra a ordem de inserção. As listas da API são devolvidas da mais nova para a mais antiga, como na v2 |
 | Estado inicial | O banco começa vazio. Os dados de demonstração são carregados pela ação "Restaurar exemplo" (RF15) |
 | Ambiente local | A mesma migração roda em um Supabase local (Docker), criado com `npx supabase start` e `npx supabase db reset`, usado no desenvolvimento e nos testes automatizados |
-| Cópia de segurança | Depende do plano do Supabase. A política de *backup* do plano gratuito para este projeto está **[A CONFIRMAR]** |
+| Cópia de segurança | O projeto usa o plano gratuito, que não tem *backup* automático: as cópias diárias existem só nos planos pagos (7 dias no plano Pro). A cópia é feita manualmente com `supabase db dump` (Seção 10.6) |
 
 O modelo descrito a seguir é **físico**, extraído da migração SQL. Na API, os nomes das colunas são convertidos de `snake_case` para `camelCase` em `backend/banco.js` (por exemplo, `data_cadastro` vira `dataCadastro`), de modo que o formato do JSON é o mesmo da v2.
 
@@ -1070,9 +1070,9 @@ sequenceDiagram
 | Integridade dos dados | Regras reforçadas no banco (Seção 5.4) e transações nas operações com duas tabelas | Baixo |
 | Concorrência | Duas entregas simultâneas da mesma doação: uma é aceita e a outra recusada (verificado em teste automatizado) | Baixo |
 | Trilha de auditoria | Não há registro de quem alterou o quê. O usuário autenticado fica disponível em `req.usuario`, mas não é gravado | Médio |
-| Tentativas de login | O Supabase Auth aplica limites de taxa às tentativas de login; a tela mostra mensagem própria para esse caso. Os valores configurados no projeto estão **[A CONFIRMAR]** | Baixo |
-| Cópia de segurança | Depende do plano do Supabase **[A CONFIRMAR]** | Médio |
-| Disponibilidade | Projetos do plano gratuito do Supabase são pausados depois de um período sem uso, e precisam ser reativados no painel. O prazo exato está **[A CONFIRMAR]** no plano vigente | Médio: o sistema pode ficar fora do ar entre campanhas |
+| Tentativas de login | O Supabase Auth aplica limites de taxa às tentativas de login; a tela mostra mensagem própria para esse caso. O padrão do Supabase é de 150 requisições a cada 5 minutos por endereço IP no *endpoint* de login, ajustável em Authentication › Rate Limits; a equipe não alterou esse valor | Baixo |
+| Cópia de segurança | O plano gratuito não tem *backup* automático; a cópia manual antes e depois de cada campanha é a única proteção contra perda de dados (Seção 10.6) | Médio |
+| Disponibilidade | Projetos do plano gratuito do Supabase são pausados depois de 7 dias com pouca atividade. O dono da conta recebe aviso por e-mail, e o projeto pode ser restaurado pelo painel em até 1 ano, com os dados preservados | Médio: o sistema pode ficar fora do ar entre campanhas |
 | Injeção de código na página (XSS) | O React escapa os textos exibidos; não há `dangerouslySetInnerHTML` | Baixo |
 | Injeção de SQL | As consultas usam o cliente do Supabase (parâmetros, não texto SQL montado) e funções com `search_path` vazio | Baixo |
 | Transporte | HTTPS fornecido pela Vercel e pelo Supabase | Baixo |
@@ -1278,7 +1278,7 @@ O código gerado pela IA não foi aceito sem verificação. As práticas abaixo 
 | Testes manuais de interface | Verificar telas, mensagens e uso no celular | Equipe técnica, no navegador | Fluxo principal executado; demais casos pendentes (Seção 9.3) |
 | Testes de segurança | Verificar que nada é acessível sem login | Equipe técnica, contra o site publicado | Executados e aprovados em 22/10/2026 |
 | Testes das versões anteriores | Registrar o comportamento da v1.1 e da v2, cujos testes originais não foram guardados | `node:test` contra a API da v2 e roteiro no navegador para a v1.1, sobre o código recuperado do GitHub | Executados em 23/10/2026: v2 com 30 de 30 aprovados; v1.1 com 17 de 17 (Seção 9.8) |
-| Testes de aceitação com a Liga | Confirmar que a Liga usa o sistema sem ajuda (Fase 4 do projeto) | Representantes da Liga, com roteiro e ficha de validação | **[A CONFIRMAR — ainda não registrados]** |
+| Testes de aceitação com a Liga | Confirmar que a Liga usa o sistema sem ajuda (Fase 4 do projeto) | Representantes da Liga, com roteiro e ficha de validação | Agendado para 26/10/2026, na implantação na Liga |
 
 Os testes automatizados cobrem a API e o banco, mas **não a interface**: não há testes automatizados de tela. Os comportamentos garantidos só pela interface (RN12, RN20, RN24, RNF01, RNF06 e RNF07) dependem de testes manuais.
 
@@ -1369,7 +1369,7 @@ Os testes rodam em sequência, e o banco é limpo antes de cada teste, de modo q
 
 ### 9.4 Testes com a Liga (Fase 4)
 
-O Projeto de Extensão prevê testes guiados em que o próprio usuário da Liga executa as operações principais. **Situação: [A CONFIRMAR — data, participantes e resultado ainda não registrados].**
+O Projeto de Extensão prevê testes guiados em que o próprio usuário da Liga executa as operações principais. **Situação: agendado para segunda-feira, 26/10/2026, na implantação do sistema na Liga, junto com a capacitação do integrante que ficará responsável pela operação do sistema.** Participantes e resultado serão registrados depois da sessão.
 
 **Preparação**
 
@@ -1397,9 +1397,9 @@ Os três critérios do Projeto de Extensão (Fase 4) foram transformados em veri
 
 | ID | Critério | Como verificar | Situação |
 |---|---|---|---|
-| CA1 | A Liga realiza as quatro operações (cadastrar beneficiário, registrar doação, registrar entrega, consultar o dashboard) **sem auxílio** da equipe | Tarefas T2 a T5 marcadas "Sim" na coluna "Concluiu sem ajuda?" da ficha, para todos os participantes | **[A CONFIRMAR]** |
-| CA2 | Os números do dashboard **conferem** com os registros efetuados | Na tarefa T5, os totais informados pelo participante coincidem com a contagem manual dos registros | **[A CONFIRMAR]** com a Liga. Verificado pela equipe (CT30, CT41) |
-| CA3 | O sistema funciona **adequadamente no celular** | Tarefas T1 a T6 feitas no celular do participante, sem conteúdo cortado nem botão inacessível | **[A CONFIRMAR]** com a Liga. Verificado pela equipe em largura de celular (CT42) |
+| CA1 | A Liga realiza as quatro operações (cadastrar beneficiário, registrar doação, registrar entrega, consultar o dashboard) **sem auxílio** da equipe | Tarefas T2 a T5 marcadas "Sim" na coluna "Concluiu sem ajuda?" da ficha, para todos os participantes | Pendente (teste em 26/10/2026) |
+| CA2 | Os números do dashboard **conferem** com os registros efetuados | Na tarefa T5, os totais informados pelo participante coincidem com a contagem manual dos registros | Pendente (teste em 26/10/2026). Verificado pela equipe (CT30, CT41) |
+| CA3 | O sistema funciona **adequadamente no celular** | Tarefas T1 a T6 feitas no celular do participante, sem conteúdo cortado nem botão inacessível | Pendente (teste em 26/10/2026). Verificado pela equipe em largura de celular (CT42) |
 | CA4 | As regras de negócio estão corretas | 35 testes automatizados aprovados | Atendido |
 | CA5 | Nenhum dado é acessível sem login | CT39 aprovado no site publicado | Atendido |
 
@@ -1639,8 +1639,8 @@ flowchart LR
 | Criar conta para novo integrante | Quando necessário | Supabase › Authentication › Users › Add user | Responsável técnico |
 | Remover acesso de quem saiu da equipe | Quando necessário | Supabase › Authentication › Users › excluir o usuário. As entregas registradas por essa pessoa não são afetadas, porque o campo "responsável" é texto livre | Responsável técnico |
 | Redefinir senha esquecida | Quando necessário | O sistema não tem tela de recuperação de senha. O caminho mais simples é excluir a conta e criá-la de novo com uma senha nova. O envio de e-mail de recuperação pelo painel depende de configurar a URL do site no Supabase **[A CONFIRMAR]** | Responsável técnico |
-| Cópia de segurança dos dados | Antes e depois de cada campanha (sugestão) | Em `backend/`: `supabase db dump --linked --data-only -f backup_dados_<data>.sql`. Guardar o arquivo fora do computador. O *backup* automático depende do plano do Supabase **[A CONFIRMAR]** | Responsável técnico |
-| Reativar o projeto pausado | Se o site parar de carregar os dados | Supabase › projeto › **Restore project**. Projetos gratuitos são pausados depois de um período sem uso **[A CONFIRMAR prazo]** | Responsável técnico |
+| Cópia de segurança dos dados | Antes e depois de cada campanha (sugestão) | Em `backend/`: `supabase db dump --linked --data-only -f backup_dados_<data>.sql`. Guardar o arquivo fora do computador. O plano gratuito não tem *backup* automático, então esta é a única cópia de segurança | Responsável técnico |
+| Reativar o projeto pausado | Se o site parar de carregar os dados | Supabase › projeto › **Restore project**. Projetos gratuitos são pausados depois de 7 dias com pouca atividade e podem ser restaurados em até 1 ano, com os dados preservados. Para evitar a pausa entre campanhas, basta alguém entrar no sistema ou no painel ao menos uma vez por semana | Responsável técnico |
 | Acompanhar erros | Quando houver relato de problema | Vercel › projeto › **Logs**, ou `vercel logs <endereço>`; Supabase › **Logs** | Responsável técnico |
 | Atualizar dependências | Semestral (sugestão) | `npm outdated` em `backend/` e `frontend/`; atualizar, rodar a sequência da Seção 10.5 e publicar | Responsável técnico |
 
@@ -1650,9 +1650,9 @@ Para que a Liga mantenha o sistema depois de 23/11/2026, data de encerramento do
 
 | Decisão | Opções | Situação |
 |---|---|---|
-| Quem será o responsável técnico | Integrante da Liga, voluntário de TI ou novo grupo de extensão da UCB | **[A CONFIRMAR com a Liga]** |
-| Onde ficam as contas | Manter nas contas do coordenador ou transferir para contas da Liga. A Vercel e o Supabase permitem transferir projetos entre contas e organizações | **[A CONFIRMAR]** |
-| Onde fica o código | Manter o repositório ou transferi-lo para uma conta da Liga | **[A CONFIRMAR]** |
+| Quem será o responsável técnico | Integrante da Liga, voluntário de TI ou novo grupo de extensão da UCB | **Definido**. Márcio Henrique Santana Conceição Sodré, coordenador do projeto. A operação do dia a dia fica com o integrante da Liga capacitado em 26/10/2026 |
+| Onde ficam as contas | Manter nas contas do coordenador ou transferir para contas da Liga. A Vercel e o Supabase permitem transferir projetos entre contas e organizações | **Definido**. Permanecem nas contas do coordenador, no plano gratuito, até que a Liga decida assumir as contas ou contratar um plano pago |
+| Onde fica o código | Manter o repositório ou transferi-lo para uma conta da Liga | **Definido**. O repositório permanece na conta do coordenador no GitHub |
 | Política de dados pessoais | Quem pode ver os dados dos beneficiários e por quanto tempo eles são guardados (LGPD) | **[A CONFIRMAR com a Liga]** |
 
 ---
@@ -1778,7 +1778,7 @@ As duas ações **não podem ser desfeitas**. Use-as somente com autorização d
 
 ### 11.11 Suporte
 
-Responsável técnico: **[A CONFIRMAR — nome e contato]**.
+Responsável técnico: Márcio Henrique Santana Conceição Sodré, coordenador do projeto. Dúvidas de uso do dia a dia vão primeiro ao integrante da Liga capacitado na implantação.
 
 ---
 
