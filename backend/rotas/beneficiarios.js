@@ -7,7 +7,6 @@ import {
   listarBeneficiarios,
   removerBeneficiario,
 } from '../banco.js'
-import { REGIOES_ADMINISTRATIVAS_DF, TIPOS_BENEFICIARIO } from '../constantes.js'
 import { responderErro } from '../erros.js'
 import { gerarId, hojeLocal } from '../util.js'
 
@@ -15,7 +14,7 @@ const router = Router()
 
 function validarBeneficiario({ nome, tipo, regiao }) {
   if (!nome?.trim()) return 'O nome é obrigatório.'
-  if (!TIPOS_BENEFICIARIO.includes(tipo) || !REGIOES_ADMINISTRATIVAS_DF.includes(regiao)) {
+  if (typeof tipo !== 'string' || !tipo || typeof regiao !== 'string' || !regiao) {
     return 'Selecione um tipo e uma região administrativa válidos.'
   }
   return null

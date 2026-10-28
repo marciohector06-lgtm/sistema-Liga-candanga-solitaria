@@ -25,7 +25,7 @@ export function Configuracoes() {
         </p>
       </div>
 
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-slate-200">
+      <div role="tablist" className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-200">
         {ABAS.map((aba) => {
           const ativa = aba.id === abaAtual.id
           return (

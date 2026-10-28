@@ -3,7 +3,7 @@ import { Field, inputClass } from '../../components/Field'
 import { ConfirmarRemocao, Modal, botaoPrimario, botaoSecundario } from '../../components/Modal'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useData } from '../../lib/DataContext'
-import { CATEGORIAS_DOACAO, STATUS_DOACAO } from '../../lib/constantes'
+import { STATUS_DOACAO } from '../../lib/constantes'
 import { BotoesAcao, Busca, TabelaVazia } from './comum'
 
 export function AbaDoacoes() {
@@ -81,7 +81,7 @@ export function AbaDoacoes() {
 }
 
 function FormEditarDoacao({ doacao, onConcluir }) {
-  const { atualizarDoacao } = useData()
+  const { opcoes, atualizarDoacao } = useData()
   const [categoria, setCategoria] = useState(doacao.categoria)
   const [quantidade, setQuantidade] = useState(String(doacao.quantidade))
   const [origem, setOrigem] = useState(doacao.origem)
@@ -106,7 +106,7 @@ function FormEditarDoacao({ doacao, onConcluir }) {
     <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Field label="Categoria">
         <select className={inputClass} value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-          {CATEGORIAS_DOACAO.map((item) => (
+          {opcoes.categorias.map((item) => (
             <option key={item}>{item}</option>
           ))}
         </select>

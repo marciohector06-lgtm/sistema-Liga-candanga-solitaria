@@ -57,12 +57,24 @@
 - [x] Deploy na Vercel e quatro fluxos de aceite validados no site com conta real
 - [x] Correção: telas de cadastro de Doações e Beneficiários passam a mostrar a mensagem de erro (da API ou de campo só com espaços)
 
+## v3.1 — Cadastros, times da Liga, logo e tela cheia
+
+**Status: pronta localmente (branch `v3.1-cadastros`), ainda sem publicação.** Pedidos da Liga em 28/10/2026.
+
+- [x] Nova tela **Cadastros** com três listas editáveis: categorias de doação, tipos de beneficiário e regiões (adicionar, renomear e remover)
+- [x] Listas fixas trocadas por tabelas no banco (`categorias_doacao`, `tipos_beneficiario`, `regioes`), com chave estrangeira `ON UPDATE CASCADE ON DELETE RESTRICT`
+- [x] Novo tipo de beneficiário **Time**; regiões ampliadas para as 35 RAs do DF, mais Entorno (GO), Outro estado e Não informada
+- [x] 131 times da Liga importados como beneficiários, com região "Não informada", porque a cidade da lista de origem é só o padrão do sistema da Liga. Ficaram de fora os inativos (Águia Dourada, Gol de Placa) e o nome repetido (MOLEKADA entrou uma vez)
+- [x] Tela Beneficiários com busca e filtro por tipo; seletor de beneficiário em Entregas em ordem alfabética
+- [x] Escudo da Liga na entrada (tela cheia, dividida em painel verde e formulário), no cabeçalho e como ícone da aba
+- [x] Telas do sistema usando a largura inteira do monitor
+
 ## Próximas fases
 
 - [ ] Mapa interativo (Leaflet.js) dos bairros atendidos
 - [ ] Indicadores por quantidade de itens e por beneficiários atendidos
 - [ ] Relatório de impacto exportável
-- [ ] Lista completa das 35 regiões administrativas do DF
+- [ ] Completar a região de cada time importado
 
 ## Decisões tomadas
 

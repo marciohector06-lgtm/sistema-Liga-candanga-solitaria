@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Field, inputClass } from '../../components/Field'
 import { ConfirmarRemocao, Modal, botaoPrimario, botaoSecundario } from '../../components/Modal'
 import { useData } from '../../lib/DataContext'
-import { REGIOES_ADMINISTRATIVAS_DF, TIPOS_BENEFICIARIO } from '../../lib/constantes'
 import { BotoesAcao, Busca, TabelaVazia } from './comum'
 
 export function AbaBeneficiarios() {
@@ -80,7 +79,7 @@ export function AbaBeneficiarios() {
 }
 
 function FormEditarBeneficiario({ beneficiario, onConcluir }) {
-  const { atualizarBeneficiario } = useData()
+  const { opcoes, atualizarBeneficiario } = useData()
   const [nome, setNome] = useState(beneficiario.nome)
   const [tipo, setTipo] = useState(beneficiario.tipo)
   const [regiao, setRegiao] = useState(beneficiario.regiao)
@@ -110,14 +109,14 @@ function FormEditarBeneficiario({ beneficiario, onConcluir }) {
       </div>
       <Field label="Tipo">
         <select className={inputClass} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-          {TIPOS_BENEFICIARIO.map((item) => (
+          {opcoes.tipos.map((item) => (
             <option key={item}>{item}</option>
           ))}
         </select>
       </Field>
       <Field label="Região administrativa">
         <select className={inputClass} value={regiao} onChange={(e) => setRegiao(e.target.value)}>
-          {REGIOES_ADMINISTRATIVAS_DF.map((item) => (
+          {opcoes.regioes.map((item) => (
             <option key={item}>{item}</option>
           ))}
         </select>

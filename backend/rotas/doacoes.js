@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import { atualizarDoacao, buscarDoacao, criarDoacao, doacaoTemEntrega, listarDoacoes, removerDoacao } from '../banco.js'
-import { CATEGORIAS_DOACAO } from '../constantes.js'
 import { responderErro } from '../erros.js'
 import { dataValida, gerarId } from '../util.js'
 
@@ -10,7 +9,7 @@ function validarDoacao(doacao) {
   if (!doacao.origem?.trim() || !Number.isInteger(doacao.quantidade) || doacao.quantidade <= 0) {
     return 'Preencha a origem e uma quantidade inteira maior que zero.'
   }
-  if (!CATEGORIAS_DOACAO.includes(doacao.categoria)) return 'Selecione uma categoria válida.'
+  if (typeof doacao.categoria !== 'string' || !doacao.categoria) return 'Selecione uma categoria válida.'
   if (!dataValida(doacao.data)) return 'Informe uma data de recebimento válida.'
   return null
 }

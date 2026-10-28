@@ -29,13 +29,14 @@ export function DataProvider({ children }) {
 
   async function carregar() {
     try {
-      const [doacoes, beneficiarios, entregas, resumo] = await Promise.all([
+      const [doacoes, beneficiarios, entregas, resumo, cadastros] = await Promise.all([
         buscar('doacoes'),
         buscar('beneficiarios'),
         buscar('entregas'),
         buscar('resumo'),
+        buscar('cadastros'),
       ])
-      setDados({ doacoes, beneficiarios, entregas, resumo })
+      setDados({ doacoes, beneficiarios, entregas, resumo, cadastros })
     } catch {
       setErroConexao(true)
     }
@@ -64,6 +65,11 @@ export function DataProvider({ children }) {
 
   const value = {
     ...dados,
+    opcoes: {
+      categorias: dados.cadastros.categorias.map((item) => item.nome),
+      tipos: dados.cadastros.tipos.map((item) => item.nome),
+      regioes: dados.cadastros.regioes.map((item) => item.nome),
+    },
     adicionarDoacao: (doacao) => enviar('POST', 'doacoes', doacao),
     atualizarDoacao: (id, doacao) => enviar('PUT', `doacoes/${id}`, doacao),
     removerDoacao: (id) => enviar('DELETE', `doacoes/${id}`),
@@ -75,6 +81,9 @@ export function DataProvider({ children }) {
     removerEntrega: (id) => enviar('DELETE', `entregas/${id}`),
     resetarDadosExemplo: () => enviar('POST', 'sistema/restaurar-exemplo'),
     apagarTodosOsDados: () => enviar('POST', 'sistema/apagar-tudo'),
+    adicionarItemCadastro: (lista, nome) => enviar('POST', `cadastros/${lista}`, { nome }),
+    renomearItemCadastro: (lista, nomeAtual, nome) => enviar('PUT', `cadastros/${lista}/${encodeURIComponent(nomeAtual)}`, { nome }),
+    removerItemCadastro: (lista, nome) => enviar('DELETE', `cadastros/${lista}/${encodeURIComponent(nome)}`),
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

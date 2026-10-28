@@ -136,11 +136,11 @@ A coluna "Problema" faz a rastreabilidade para P1 (continuidade), P2 (cadastro) 
 
 | ID | Requisito | Descrição (comportamento implementado) | Prioridade | Problema | Fonte no código |
 |---|---|---|---|---|---|
-| **RF01** | Cadastrar beneficiário | Registrar nome (obrigatório), tipo (Família, Escolinha ou Instituição), RA (lista fixa), contato e necessidade principal. A data de cadastro é atribuída pelo servidor | Essencial | P2 | `pages/Beneficiarios.jsx`; `rotas/beneficiarios.js` (POST) |
-| **RF02** | Listar beneficiários | Exibir nome, tipo, região, contato e necessidade, do cadastro mais recente para o mais antigo | Essencial | P2 | `pages/Beneficiarios.jsx`; `rotas/beneficiarios.js` (GET) |
+| **RF01** | Cadastrar beneficiário | Registrar nome (obrigatório), tipo e região (escolhidos nas listas da tela Cadastros), contato e necessidade principal. A data de cadastro é atribuída pelo servidor | Essencial | P2 | `pages/Beneficiarios.jsx`; `rotas/beneficiarios.js` (POST) |
+| **RF02** | Listar beneficiários | Exibir nome, tipo, região, contato e necessidade, em ordem alfabética, com busca por texto e filtro por tipo (v3.1) | Essencial | P2 | `pages/Beneficiarios.jsx`; `rotas/beneficiarios.js` (GET) |
 | **RF03** | Editar beneficiário | Alterar nome, tipo, região, contato e necessidade de um beneficiário existente | Importante | P2 | `configuracoes/AbaBeneficiarios.jsx`; `rotas/beneficiarios.js` (PUT) |
 | **RF04** | Remover beneficiário | Excluir beneficiário após confirmação, desde que não tenha entregas (RN19) | Importante | P2 | `configuracoes/AbaBeneficiarios.jsx`; `rotas/beneficiarios.js` (DELETE) |
-| **RF05** | Registrar doação | Registrar categoria (Cesta básica, Bola, Rede, Troféu ou Uniforme), quantidade, origem e data de recebimento (padrão: data atual). A doação nasce com status "Disponível" | Essencial | P1, P3 | `pages/Doacoes.jsx`; `rotas/doacoes.js` (POST) |
+| **RF05** | Registrar doação | Registrar categoria (escolhida na lista da tela Cadastros), quantidade, origem e data de recebimento (padrão: data atual). A doação nasce com status "Disponível" | Essencial | P1, P3 | `pages/Doacoes.jsx`; `rotas/doacoes.js` (POST) |
 | **RF06** | Listar doações com situação | Exibir categoria, quantidade, origem, data e status (etiqueta colorida), da mais recente para a mais antiga | Essencial | P1, P3 | `pages/Doacoes.jsx`; `components/StatusBadge.jsx` |
 | **RF07** | Editar doação | Alterar categoria, quantidade, origem, data e status ("Disponível" ou "Reservada"), respeitando RN08 a RN10 | Importante | P1, P3 | `configuracoes/AbaDoacoes.jsx`; `rotas/doacoes.js` (PUT) |
 | **RF08** | Remover doação | Excluir doação após confirmação, desde que não tenha entrega (RN18) | Importante | P3 | `configuracoes/AbaDoacoes.jsx`; `rotas/doacoes.js` (DELETE) |
@@ -156,7 +156,11 @@ A coluna "Problema" faz a rastreabilidade para P1 (continuidade), P2 (cadastro) 
 | **RF24** | Entrar no sistema | Autenticar o usuário por e-mail e senha antes de exibir qualquer tela ou dado, com mensagens em português para credenciais inválidas, e-mail não confirmado, acesso bloqueado e excesso de tentativas | Essencial | P1 | `pages/Login.jsx`; `App.jsx`; `backend/autenticacao.js` |
 | **RF25** | Sair do sistema | Encerrar a sessão pelo botão "Sair" e, automaticamente, quando a API recusar a sessão (expirada ou inválida) | Essencial | P1 | `components/Layout.jsx`; `lib/DataContext.jsx` |
 
-Os números RF18 a RF23 identificam requisitos ainda não atendidos (Seção 2.4). Por isso os requisitos de acesso, entregues na v3, receberam RF24 e RF25.
+| **RF26** | Manter categorias de doação | Adicionar, renomear e remover categorias na tela Cadastros. Pedido da Liga em 28/10/2026 (v3.1) | Importante | P1, P3 | `pages/cadastros/Cadastros.jsx`; `rotas/cadastros.js` |
+| **RF27** | Manter tipos de beneficiário | Adicionar, renomear e remover tipos (inclui "Time") na tela Cadastros (v3.1) | Importante | P2 | `pages/cadastros/Cadastros.jsx`; `rotas/cadastros.js` |
+| **RF28** | Manter regiões | Adicionar, renomear e remover regiões na tela Cadastros. A lista inicial traz as 35 RAs do DF, Entorno (GO), Outro estado e Não informada (v3.1) | Importante | P2 | `pages/cadastros/Cadastros.jsx`; `rotas/cadastros.js` |
+
+Os números RF18 a RF23 identificam requisitos ainda não atendidos (Seção 2.4). Por isso os requisitos de acesso, entregues na v3, receberam RF24 e RF25, e os de cadastros, entregues na v3.1, receberam RF26 a RF28.
 
 ### 2.3 Requisitos não funcionais
 
@@ -238,7 +242,7 @@ As regras abaixo foram extraídas do código da v3. A coluna "Aplicação" indic
 |---|---|---|---|---|
 | **RN01** | O beneficiário precisa ter nome não vazio. Espaços nas extremidades são removidos | API, Banco e Interface | "O nome é obrigatório." | `rotas/beneficiarios.js`; `CHECK` em `beneficiarios.nome` |
 | **RN02** | A data de cadastro é atribuída pela API no momento do cadastro, no fuso de Brasília, e não pode ser editada | API | — | `rotas/beneficiarios.js`; `util.js` (`hojeLocal`) |
-| **RN03** | O tipo deve ser Família, Escolinha ou Instituição, e a região deve ser uma das 8 RAs da lista | API, Banco e Interface | "Selecione um tipo e uma região administrativa válidos." | `constantes.js`; `CHECK` em `tipo` e `regiao` |
+| **RN03** | O tipo e a região devem existir nas listas da tela Cadastros (tabelas `tipos_beneficiario` e `regioes`) | API, Banco e Interface | "Selecione um tipo e uma região administrativa válidos." | Chaves estrangeiras `beneficiarios_tipo_fkey` e `beneficiarios_regiao_fkey` (v3.1; na v3 era `CHECK`) |
 | **RN04** | Contato e necessidade principal são opcionais. Quando ausentes, são gravados como texto vazio | API e Banco | — | `rotas/beneficiarios.js`; padrão `''` no banco |
 
 ### 3.2 Doações
@@ -246,7 +250,7 @@ As regras abaixo foram extraídas do código da v3. A coluna "Aplicação" indic
 | ID | Regra | Aplicação | Mensagem ao usuário | Fonte |
 |---|---|---|---|---|
 | **RN05** | A doação precisa ter origem não vazia e quantidade inteira maior que zero | API, Banco e Interface | "Preencha a origem e uma quantidade inteira maior que zero." | `rotas/doacoes.js` (`validarDoacao`); `CHECK` em `quantidade` e `origem` |
-| **RN06** | A categoria deve ser Cesta básica, Bola, Rede, Troféu ou Uniforme | API, Banco e Interface | "Selecione uma categoria válida." | `constantes.js`; `CHECK` em `categoria` |
+| **RN06** | A categoria deve existir na lista da tela Cadastros (tabela `categorias_doacao`) | API, Banco e Interface | "Selecione uma categoria válida." | Chave estrangeira `doacoes_categoria_fkey` (v3.1; na v3 era `CHECK`) |
 | **RN07** | Toda doação nasce com status "Disponível". A API ignora qualquer status enviado no cadastro | API e Banco (valor padrão) | — | `rotas/doacoes.js` (POST) |
 | **RN08** | Os status possíveis são "Disponível", "Reservada" e "Entregue". "Reservada" só pode ser definida manualmente, na edição | Banco e Interface | "Selecione um status válido." | `CHECK` em `status`; `AbaDoacoes.jsx` |
 | **RN09** | Uma doação só passa a "Entregue" com o registro de uma entrega. A edição manual para "Entregue" é recusada | Banco (gatilho) | "Para marcar como Entregue, registre uma entrega na tela de Entregas." | Gatilho `doacoes_validar_status` |
@@ -287,6 +291,7 @@ As regras abaixo foram extraídas do código da v3. A coluna "Aplicação" indic
 | **RN26** | Os indicadores do dashboard são calculados pela API a cada consulta, a partir dos registros atuais, sem histórico nem fotografia por período | API | `rotas/resumo.js` |
 | **RN27** | "Doações recebidas" e "Doações por categoria" contam **registros (lotes)**, não unidades. "Doações disponíveis" conta só o status "Disponível" (doações "Reservada" ficam de fora). "Beneficiários por região" conta beneficiários cadastrados, com ou sem entrega | API | `rotas/resumo.js` |
 | **RN28** | Os identificadores são gerados pela API no formato `prefixo-carimboDeTempo-aleatório` (por exemplo, `doacao-...`, `entrega-...`) | API | `util.js` (`gerarId`) |
+| **RN36** | Itens das listas de Cadastros têm nome obrigatório, de até 60 caracteres e sem repetição. Renomear um item muda o nome em todos os registros que o usam; um item em uso não pode ser removido. "Restaurar exemplo" e "Apagar tudo" não mexem nessas listas (v3.1) | API e Banco | `rotas/cadastros.js`; chaves estrangeiras `ON UPDATE CASCADE ON DELETE RESTRICT` |
 
 ### 3.6 Lacunas observadas e situação na v3
 
@@ -294,7 +299,7 @@ A versão v2 tinha quatro lacunas na aplicação das regras. A v3 fechou três d
 
 | Lacuna na v2 | Situação na v3 |
 |---|---|
-| Tipo, região e categoria eram garantidos só pela interface; uma chamada direta à API aceitava outros valores | **Fechada**: validados na API (RN03, RN06) e no banco (`CHECK`) |
+| Tipo, região e categoria eram garantidos só pela interface; uma chamada direta à API aceitava outros valores | **Fechada**: validados no banco (`CHECK` na v3; chaves estrangeiras para as listas de Cadastros desde a v3.1) e com mensagem própria na API (RN03, RN06) |
 | A API não verificava se o beneficiário da entrega existia | **Fechada**: verificado pela chave estrangeira (RN31) |
 | A API aceitava doação e entrega sem data | **Fechada**: datas obrigatórias e validadas (RN29, RN30) |
 | Doações "Reservada" podiam ser removidas ou voltar a "Disponível" sem restrição, e não havia registro de para quem foi feita a reserva | **Mantida**: comportamento igual ao da v2 |
@@ -658,11 +663,14 @@ O modelo descrito a seguir é **físico**, extraído da migração SQL. Na API, 
 | **Beneficiário** | `beneficiarios` | Família, escolinha ou instituição apta a receber doações |
 | **Doação** | `doacoes` | Lote de itens recebido pela Liga, de uma única categoria e origem |
 | **Entrega** | `entregas` | Destinação de uma doação a um beneficiário, em uma data, por um responsável. É a tabela associativa entre as outras duas |
+| **Categoria, tipo e região** | `categorias_doacao`, `tipos_beneficiario`, `regioes` | Listas editáveis da tela Cadastros (v3.1). Cada uma tem só a coluna `nome` (chave primária, obrigatória, até 60 caracteres) |
 
 | Relacionamento | Cardinalidade | Como o banco garante |
 |---|---|---|
 | Beneficiário **recebe** Entrega | 1 beneficiário : 0..N entregas | Chave estrangeira `entregas.beneficiario_id` → `beneficiarios.id`, com `ON DELETE RESTRICT` |
 | Doação **é destinada por** Entrega | 1 doação : 0..1 entrega | Chave estrangeira `entregas.doacao_id` → `doacoes.id`, com `ON DELETE RESTRICT` e restrição `UNIQUE` em `doacao_id` |
+
+Desde a v3.1, `doacoes.categoria`, `beneficiarios.tipo` e `beneficiarios.regiao` são chaves estrangeiras para as listas de Cadastros, com `ON UPDATE CASCADE` (renomear o item atualiza os registros) e `ON DELETE RESTRICT` (item em uso não é removido).
 
 A restrição `UNIQUE` em `entregas.doacao_id` implementa no banco a simplificação do lote único (RN17): uma doação nunca tem duas entregas, mesmo que duas pessoas tentem registrá-las ao mesmo tempo.
 
@@ -675,8 +683,8 @@ erDiagram
     text id PK
     bigint ordem "identidade, uso interno"
     text nome "obrigatorio"
-    text tipo "CHECK: 3 tipos"
-    text regiao "CHECK: 8 RAs"
+    text tipo FK "tipos_beneficiario"
+    text regiao FK "regioes"
     text contato "padrao vazio"
     text necessidade "padrao vazio"
     date data_cadastro
@@ -684,7 +692,7 @@ erDiagram
   DOACOES {
     text id PK
     bigint ordem "identidade, uso interno"
-    text categoria "CHECK: 5 categorias"
+    text categoria FK "categorias_doacao"
     integer quantidade "CHECK: maior que 0"
     text origem "obrigatorio"
     date data "recebimento"
@@ -711,8 +719,8 @@ Convenções: todas as colunas são `NOT NULL`. "Obrigatório" (texto) significa
 | `id` | `id` | `text` | Chave primária | Identificador único (`beneficiario-...`) |
 | `ordem` | — | `bigint` | Identidade gerada pelo banco | Ordem de inserção |
 | `nome` | `nome` | `text` | Obrigatório | Nome da família, escolinha ou instituição |
-| `tipo` | `tipo` | `text` | `CHECK` em `Família`, `Escolinha`, `Instituição` | Tipo de beneficiário |
-| `regiao` | `regiao` | `text` | `CHECK` nas 8 RAs: Ceilândia, Guará, Taguatinga, Samambaia, Planaltina, Recanto das Emas, Santa Maria, São Sebastião | Região administrativa do DF |
+| `tipo` | `tipo` | `text` | Chave estrangeira para `tipos_beneficiario.nome` (v3.1) | Tipo de beneficiário |
+| `regiao` | `regiao` | `text` | Chave estrangeira para `regioes.nome` (v3.1; na v3 era `CHECK` em 8 RAs) | Região administrativa do DF ou outro local |
 | `contato` | `contato` | `text` | Padrão `''` | Telefone ou e-mail. **Dado pessoal** quando o beneficiário é família |
 | `necessidade` | `necessidade` | `text` | Padrão `''` | Necessidade principal informada |
 | `data_cadastro` | `dataCadastro` | `date` | — | Data de inclusão, atribuída pela API no fuso de Brasília; não editável |
@@ -723,7 +731,7 @@ Convenções: todas as colunas são `NOT NULL`. "Obrigatório" (texto) significa
 |---|---|---|---|---|
 | `id` | `id` | `text` | Chave primária | Identificador único (`doacao-...`) |
 | `ordem` | — | `bigint` | Identidade gerada pelo banco | Ordem de inserção |
-| `categoria` | `categoria` | `text` | `CHECK` em `Cesta básica`, `Bola`, `Rede`, `Troféu`, `Uniforme` | Categoria dos itens do lote |
+| `categoria` | `categoria` | `text` | Chave estrangeira para `categorias_doacao.nome` (v3.1) | Categoria dos itens do lote |
 | `quantidade` | `quantidade` | `integer` | `CHECK (quantidade > 0)` | Quantidade de unidades no lote |
 | `origem` | `origem` | `text` | Obrigatório | Quem doou (equipe, torcida, parceiro) |
 | `data` | `data` | `date` | — | Data de recebimento |
@@ -744,7 +752,8 @@ Convenções: todas as colunas são `NOT NULL`. "Obrigatório" (texto) significa
 
 | Mecanismo | Objeto | O que garante | Regras |
 |---|---|---|---|
-| Restrições `CHECK` | Colunas `tipo`, `regiao`, `categoria`, `status`, `quantidade` e textos obrigatórios | Domínios válidos e campos preenchidos, também para acessos fora da API | RN01, RN03, RN05, RN06, RN08, RN13, RN19 |
+| Restrições `CHECK` | Colunas `status`, `quantidade` e textos obrigatórios | Domínios válidos e campos preenchidos, também para acessos fora da API | RN01, RN05, RN08, RN13, RN19 |
+| Chaves estrangeiras com `ON UPDATE CASCADE ON DELETE RESTRICT` | `doacoes.categoria`, `beneficiarios.tipo` e `beneficiarios.regiao` (v3.1) | Só valores das listas de Cadastros; renomear propaga, remover item em uso é bloqueado | RN03, RN06, RN36 |
 | Chaves estrangeiras com `ON DELETE RESTRICT` | `entregas.doacao_id` e `entregas.beneficiario_id` | Não há entrega para doação ou beneficiário inexistente, nem remoção de registros que tenham entrega | RN21, RN22 |
 | Restrição `UNIQUE` | `entregas.doacao_id` | Uma doação tem no máximo uma entrega | RN17 |
 | Gatilho `entregas_validar_data` | Antes de inserir ou alterar uma entrega | A data da entrega não é anterior ao recebimento da doação | RN15 |
@@ -775,7 +784,7 @@ O endpoint `GET /api/resumo` (`backend/rotas/resumo.js`) lê as três tabelas e 
 | `doacoesDisponiveis` | Quantidade de doações com status "Disponível" |
 | `totalBeneficiarios` | Quantidade de registros de beneficiário |
 | `totalEntregas` | Quantidade de registros de entrega |
-| `doacoesPorCategoria` | Para cada uma das 5 categorias, a quantidade de **registros** (não de unidades) |
+| `doacoesPorCategoria` | Para cada categoria cadastrada, a quantidade de **registros** (não de unidades) |
 | `beneficiariosPorRegiao` | Para cada região presente no cadastro, a quantidade de beneficiários cadastrados |
 
 O status "Entregue" da doação continua sendo um dado **redundante**: equivale à existência de uma entrega para ela. Na v3, a consistência dessa redundância é garantida pelo próprio banco, por meio do gatilho `doacoes_validar_status` e das funções `registrar_entrega` e `remover_entrega`.
@@ -789,6 +798,8 @@ O status "Entregue" da doação continua sendo um dado **redundante**: equivale 
 | `doacoes` | 6 | 2 de cesta básica (40 e 25 unidades), bolas, uniformes, redes ("Reservada") e troféus |
 | `beneficiarios` | 3 | Uma escolinha (Guará), uma família (Ceilândia) e uma instituição (Samambaia) |
 | `entregas` | 2 | Cestas básicas para a família e bolas para a escolinha |
+
+**Times da Liga (v3.1).** A migração `20261028120000_cadastros.sql` cadastra 131 times da Liga como beneficiários do tipo "Time" (identificadores `time-001` a `time-131`), a partir da lista enviada pela Liga em 28/10/2026. Todos entram com a região "Não informada", porque a cidade da lista de origem é só o valor padrão do sistema da Liga; a região de cada time deve ser corrigida depois, pela edição. Ficaram de fora os times marcados como inativos (Águia Dourada e Gol de Placa), e o nome repetido "MOLEKADA" entrou uma vez. Atenção: "Restaurar exemplo" e "Apagar tudo" removem também esses times.
 
 ### 5.7 Ambientes de banco de dados
 
@@ -1113,6 +1124,7 @@ flowchart LR
   D <--> DO[Doações]
   D <--> BE[Beneficiários]
   D <--> EN[Entregas]
+  D <--> CA[Cadastros]
   D <--> CF[Configurações]
   CF --> A1[Aba Doações]
   CF --> A2[Aba Beneficiários]
@@ -1121,7 +1133,7 @@ flowchart LR
   D -->|Sair| L
 ```
 
-Todas as telas, exceto o Login, compartilham o mesmo cabeçalho (`Layout.jsx`): o nome "Liga Candanga de Futsal / Liga Candanga Solidária", o menu Dashboard, Doações, Beneficiários, Entregas e Configurações, e o botão **Sair**. O endereço usa o formato `/#/tela` (por exemplo, `/#/doacoes`).
+Todas as telas, exceto o Login, compartilham o mesmo cabeçalho (`Layout.jsx`): o nome "Liga Candanga de Futsal / Liga Candanga Solidária", o escudo da Liga, o menu Dashboard, Doações, Beneficiários, Entregas, Cadastros e Configurações, e o botão **Sair**. Desde a v3.1, as telas usam a largura inteira do monitor. O endereço usa o formato `/#/tela` (por exemplo, `/#/doacoes`).
 
 ### 7.2 Tela de Login
 
@@ -1130,7 +1142,7 @@ Todas as telas, exceto o Login, compartilham o mesmo cabeçalho (`Layout.jsx`): 
 | Item | Descrição |
 |---|---|
 | Função | Identificar o integrante da equipe antes de qualquer acesso (UC17, RF24) |
-| Conteúdo | Título "Liga Candanga Solidária", orientação "Entre com o e-mail e a senha da equipe.", campos **E-mail** e **Senha** e botão **Entrar** |
+| Conteúdo | Tela inteira dividida em duas partes (v3.1): painel verde com o escudo da Liga e o nome do sistema; formulário com a orientação "Use o e-mail e a senha da equipe.", campos **E-mail** e **Senha** e botão **Entrar**. No celular, o painel fica em cima e o formulário embaixo |
 | Comportamento | Durante a verificação, o botão fica desabilitado com o texto "Entrando...". Erros aparecem em uma caixa vermelha acima do botão |
 | Observação | Não há link de cadastro nem de recuperação de senha. As contas e as senhas são gerenciadas pelo responsável técnico no painel do Supabase |
 
@@ -1193,6 +1205,15 @@ Todas as telas, exceto o Login, compartilham o mesmo cabeçalho (`Layout.jsx`): 
 | Aba Sistema | Quadro "Dados armazenados" com os totais e quadro **Zona de risco** com as ações **Restaurar exemplo** e **Apagar tudo**, ambas com confirmação |
 
 **[Figura 7.7 — Configurações, aba Sistema]**
+
+### 7.8 Cadastros (v3.1)
+
+| Item | Descrição |
+|---|---|
+| Função | Manter as listas usadas nos formulários (RF26 a RF28, RN36) |
+| Abas | **Categorias de doação** (aberta por padrão), **Tipos de beneficiário** e **Regiões**. A aba ativa fica no endereço (`?lista=...`) |
+| Conteúdo | Campo **Novo item** com o botão **Adicionar**; busca; tabela com o nome, quantos registros usam o item e os botões **Renomear** e **Remover** |
+| Particularidades | Renomear avisa quantos registros também mudam de nome. Remover um item em uso é recusado com a mensagem "Este item está em uso por N registro(s)..." |
 
 ---
 
@@ -1461,6 +1482,7 @@ Assinatura do participante: ______________________ Assinatura do observador: ___
 | v3 | A data atual seria calculada em UTC no servidor da Vercel (o mesmo problema da v1.1, agora no backend) | `hojeLocal()` no fuso `America/Sao_Paulo` (CT33) |
 | v3 | A configuração local do Supabase desligava o login por e-mail | Corrigida na integração (Seção 8.3) |
 | v3 | As telas de cadastro de Doações e Beneficiários não exibiam a mensagem de erro da API, nem avisavam quando o campo obrigatório tinha só espaços | Mensagem exibida abaixo do botão, no mesmo padrão da tela de Entregas; corrigido e publicado em 22/10/2026 (CT43) |
+| v3 | Apontado pela Liga em 28/10/2026: não era possível cadastrar categorias novas, os times não existiam como beneficiários, a entrada não tinha a identidade da Liga e as telas ocupavam só o meio do monitor | v3.1: tela Cadastros (RF26 a RF28), 131 times importados, escudo da Liga na entrada e no cabeçalho, telas em largura inteira |
 
 ### 9.8 Testes das versões anteriores (v1.1 e v2)
 

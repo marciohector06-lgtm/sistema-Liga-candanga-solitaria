@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { DataProvider } from './lib/DataContext'
 import { supabase, supabaseConfigurado } from './lib/supabase'
 import { Beneficiarios } from './pages/Beneficiarios'
+import { Cadastros } from './pages/cadastros/Cadastros'
 import { Configuracoes } from './pages/configuracoes/Configuracoes'
 import { Dashboard } from './pages/Dashboard'
 import { Doacoes } from './pages/Doacoes'
@@ -46,6 +47,7 @@ function AppAutenticado() {
             <Route path="doacoes" element={<Doacoes />} />
             <Route path="beneficiarios" element={<Beneficiarios />} />
             <Route path="entregas" element={<Entregas />} />
+            <Route path="cadastros" element={<Cadastros />} />
             <Route path="configuracoes" element={<Configuracoes />} />
           </Route>
         </Routes>

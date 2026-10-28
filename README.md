@@ -89,11 +89,11 @@ backend/
   autenticacao.js      Valida o token de login (Bearer) no Supabase Auth
   supabase.js          Cliente do Supabase com a chave secreta
   banco.js             Acesso aos dados (consultas e funções do banco)
-  constantes.js        Categorias, status, tipos e regiões
+  constantes.js        Status das doações
   erros.js             Erros de regra (400) e falhas internas (500)
   seed.js              Dados de exemplo
   util.js              gerarId, hojeLocal (fuso de Brasília) e dataValida
-  rotas/               doacoes, beneficiarios, entregas, resumo, sistema
+  rotas/               doacoes, beneficiarios, entregas, resumo, sistema, cadastros
   supabase/
     config.toml        Configuração do Supabase local
     migrations/        Esquema do banco (tabelas, regras, funções e RLS)
@@ -104,11 +104,12 @@ frontend/
     lib/
       DataContext.jsx  Única camada que fala com a API (envia o token)
       supabase.js      Cliente do Supabase para o login
-      constantes.js    Categorias, status, tipos e regiões
+      constantes.js    Status das doações
       datas.js         Data de hoje no fuso local
     pages/
       Login.jsx
       Dashboard.jsx, Doacoes.jsx, Beneficiarios.jsx, Entregas.jsx
+      cadastros/       Categorias, tipos e regiões (adicionar, renomear, remover)
       configuracoes/   Área do administrador (editar/remover)
 vercel.json            Configuração do deploy
 ```
@@ -134,11 +135,16 @@ Todas as rotas começam com `/api`, trocam JSON e **exigem login**: o cabeçalho
 | GET | `/api/resumo` | Totais do dashboard |
 | POST | `/api/sistema/restaurar-exemplo` | Substitui tudo pelos dados de exemplo |
 | POST | `/api/sistema/apagar-tudo` | Apaga todos os dados |
+| GET | `/api/cadastros` | Listas de categorias, tipos e regiões, com o uso de cada item |
+| POST | `/api/cadastros/:lista` | Adiciona item (`:lista` = `categorias`, `tipos` ou `regioes`) |
+| PUT | `/api/cadastros/:lista/:nome` | Renomeia item (o novo nome vale também nos registros que o usam) |
+| DELETE | `/api/cadastros/:lista/:nome` | Remove item sem uso |
 
 ### Regras de negócio
 
-- Doação precisa de origem, de quantidade inteira maior que zero, de data válida e de categoria da lista.
-- Beneficiário precisa de nome e de tipo e região da lista.
+- Doação precisa de origem, de quantidade inteira maior que zero, de data válida e de uma categoria cadastrada.
+- Beneficiário precisa de nome e de um tipo e uma região cadastrados.
+- Categorias, tipos e regiões são listas editáveis na tela **Cadastros**. Renomear um item atualiza os registros que o usam; um item em uso não pode ser removido. Os nomes têm até 60 caracteres e não se repetem.
 - Só uma doação `Disponível` pode ser entregue, e a data da entrega não pode ser anterior ao recebimento.
 - Uma doação só fica `Entregue` com o registro de uma entrega. Enquanto tiver entrega, não pode mudar de status nem ter data de recebimento posterior à da entrega.
 - Não é possível remover doação entregue nem beneficiário com entregas.
@@ -157,6 +163,7 @@ Simplificação assumida: cada doação é tratada como um lote único, entregue
 ## Próximas fases
 
 - Mapa interativo (Leaflet.js) com as regiões administrativas atendidas.
+- Completar a região dos times importados, que entraram como "Não informada".
 - Indicadores por quantidade de itens e por beneficiários atendidos.
 - Relatório de impacto exportável.
 - Lista completa das 35 regiões administrativas do DF.
