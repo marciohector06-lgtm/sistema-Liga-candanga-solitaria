@@ -5,12 +5,12 @@ import { useData } from '../../lib/DataContext'
 const TEXTOS = {
   exemplo: {
     titulo: 'Restaurar dados de exemplo',
-    descricao: 'Todos os registros atuais serão substituídos pelos dados de exemplo iniciais.',
+    descricao: 'Todos os registros atuais, inclusive os times cadastrados, serão substituídos pelos dados de exemplo iniciais. As listas da tela Cadastros são mantidas.',
     botao: 'Restaurar exemplo',
   },
   apagar: {
     titulo: 'Apagar todos os dados',
-    descricao: 'Todas as doações, beneficiários e entregas serão apagados, deixando o sistema vazio para uso real.',
+    descricao: 'Todas as doações, beneficiários (inclusive os times) e entregas serão apagados. As listas da tela Cadastros são mantidas.',
     botao: 'Apagar tudo',
   },
 }

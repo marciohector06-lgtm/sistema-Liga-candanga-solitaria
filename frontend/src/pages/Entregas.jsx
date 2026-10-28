@@ -65,7 +65,7 @@ export function Entregas() {
             <option value="" disabled>
               Selecione
             </option>
-            {beneficiarios.map((beneficiario) => (
+            {[...beneficiarios].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map((beneficiario) => (
               <option key={beneficiario.id} value={beneficiario.id}>
                 {beneficiario.nome} · {beneficiario.regiao}
               </option>

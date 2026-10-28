@@ -1,15 +1,19 @@
 import { Router } from 'express'
-import { listarBeneficiarios, listarDoacoes, listarEntregas } from '../banco.js'
-import { CATEGORIAS_DOACAO } from '../constantes.js'
+import { listarBeneficiarios, listarDoacoes, listarEntregas, listarNomesDoCadastro } from '../banco.js'
 import { responderErro } from '../erros.js'
 
 const router = Router()
 
 router.get('/', async (req, res) => {
-  const [doacoes, beneficiarios, entregas] = await Promise.all([listarDoacoes(), listarBeneficiarios(), listarEntregas()])
+  const [doacoes, beneficiarios, entregas, categorias] = await Promise.all([
+    listarDoacoes(),
+    listarBeneficiarios(),
+    listarEntregas(),
+    listarNomesDoCadastro('categorias'),
+  ])
 
   const doacoesPorCategoria = {}
-  for (const categoria of CATEGORIAS_DOACAO) {
+  for (const categoria of categorias) {
     doacoesPorCategoria[categoria] = doacoes.filter((d) => d.categoria === categoria).length
   }
 

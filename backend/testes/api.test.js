@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import express from 'express'
 import { responderErro, ErroDeRegra } from '../erros.js'
 import beneficiarios from '../rotas/beneficiarios.js'
+import cadastros from '../rotas/cadastros.js'
 import doacoes from '../rotas/doacoes.js'
 import entregas from '../rotas/entregas.js'
 import resumo from '../rotas/resumo.js'
@@ -22,6 +23,7 @@ before(async () => {
   app.use('/api/entregas', entregas)
   app.use('/api/resumo', resumo)
   app.use('/api/sistema', sistema)
+  app.use('/api/cadastros', cadastros)
   await new Promise((resolver) => {
     servidor = app.listen(0, resolver)
   })
@@ -115,7 +117,7 @@ describe('Beneficiários', () => {
   })
 
   test('RN03: recusa tipo ou região fora das listas', async () => {
-    for (const campos of [{ tipo: 'Empresa', regiao: 'Guará' }, { tipo: 'Família', regiao: 'Plano Piloto' }]) {
+    for (const campos of [{ tipo: 'Empresa', regiao: 'Guará' }, { tipo: 'Família', regiao: 'Região Inexistente' }]) {
       const { status, corpo } = await chamar('POST', 'beneficiarios', { nome: 'X', ...campos })
       assert.equal(status, 400)
       assert.deepEqual(corpo, { erro: 'Selecione um tipo e uma região administrativa válidos.' })
@@ -466,13 +468,114 @@ describe('Sistema e resumo', () => {
   })
 })
 
+describe('Cadastros', () => {
+  const criados = []
+
+  async function criarItem(lista, nome) {
+    const resposta = await chamar('POST', `cadastros/${lista}`, { nome })
+    if (resposta.status === 201) criados.push([lista, resposta.corpo.nome])
+    return resposta
+  }
+
+  beforeEach(apagarTudo)
+
+  after(async () => {
+    await restaurarExemplo()
+    for (const [lista, nome] of criados) await chamar('DELETE', `cadastros/${lista}/${encodeURIComponent(nome)}`)
+  })
+
+  test('RF: lista categorias, tipos e regiões em ordem alfabética, com o uso de cada item', async () => {
+    await restaurarExemplo()
+    const { status, corpo } = await chamar('GET', 'cadastros')
+    assert.equal(status, 200)
+    assert.deepEqual(Object.keys(corpo), ['categorias', 'tipos', 'regioes'])
+    assert.deepEqual(corpo.categorias, [
+      { nome: 'Bola', uso: 1 },
+      { nome: 'Cesta básica', uso: 2 },
+      { nome: 'Rede', uso: 1 },
+      { nome: 'Troféu', uso: 1 },
+      { nome: 'Uniforme', uso: 1 },
+    ])
+    assert.deepEqual(corpo.tipos.map((item) => item.nome), ['Escolinha', 'Família', 'Instituição', 'Time'])
+    assert.equal(corpo.regioes.length, 38)
+    assert.ok(corpo.regioes.some((item) => item.nome === 'Não informada'))
+    assert.deepEqual(corpo.regioes.find((item) => item.nome === 'Guará'), { nome: 'Guará', uso: 1 })
+  })
+
+  test('RF: categoria nova é aceita na doação e aparece no resumo', async () => {
+    const { status, corpo } = await criarItem('categorias', '  Medalha  ')
+    assert.equal(status, 201)
+    assert.deepEqual(corpo, { nome: 'Medalha', uso: 0 })
+    const doacao = await criarDoacao({ categoria: 'Medalha' })
+    assert.equal(doacao.categoria, 'Medalha')
+    assert.equal((await chamar('GET', 'resumo')).corpo.doacoesPorCategoria.Medalha, 1)
+  })
+
+  test('RF: tipo "Time" e região nova são aceitos no beneficiário', async () => {
+    await criarItem('regioes', 'Formosa (GO)')
+    const time = await criarBeneficiario({ nome: 'Time Teste', tipo: 'Time', regiao: 'Formosa (GO)' })
+    assert.equal(time.tipo, 'Time')
+    assert.equal(time.regiao, 'Formosa (GO)')
+  })
+
+  test('Recusa nome vazio, longo demais ou repetido', async () => {
+    for (const nome of [undefined, '', '   ', 'x'.repeat(61)]) {
+      const { status } = await criarItem('categorias', nome)
+      assert.equal(status, 400)
+    }
+    const repetido = await criarItem('categorias', 'Bola')
+    assert.equal(repetido.status, 400)
+    assert.deepEqual(repetido.corpo, { erro: 'Já existe um item com esse nome.' })
+  })
+
+  test('Renomear muda o item em todos os registros que o usam', async () => {
+    await criarItem('categorias', 'Kit goleiro')
+    const doacao = await criarDoacao({ categoria: 'Kit goleiro' })
+    const { status, corpo } = await chamar('PUT', `cadastros/categorias/${encodeURIComponent('Kit goleiro')}`, { nome: 'Kit de goleiro' })
+    assert.equal(status, 200)
+    criados.push(['categorias', 'Kit de goleiro'])
+    assert.deepEqual(corpo, { nome: 'Kit de goleiro', uso: 1 })
+    const doacoes = (await chamar('GET', 'doacoes')).corpo
+    assert.equal(doacoes.find((d) => d.id === doacao.id).categoria, 'Kit de goleiro')
+    const repetido = await chamar('PUT', `cadastros/categorias/${encodeURIComponent('Kit de goleiro')}`, { nome: 'Bola' })
+    assert.equal(repetido.status, 400)
+    const inexistente = await chamar('PUT', 'cadastros/categorias/Nada', { nome: 'Outra' })
+    assert.equal(inexistente.status, 404)
+  })
+
+  test('Não remove item em uso; remove item livre', async () => {
+    await criarItem('categorias', 'Colete')
+    const doacao = await criarDoacao({ categoria: 'Colete' })
+    const emUso = await chamar('DELETE', 'cadastros/categorias/Colete')
+    assert.equal(emUso.status, 400)
+    assert.deepEqual(emUso.corpo, { erro: 'Este item está em uso por 1 registro(s). Troque-o nesses registros antes de remover.' })
+    assert.equal((await chamar('DELETE', `doacoes/${doacao.id}`)).status, 204)
+    assert.equal((await chamar('DELETE', 'cadastros/categorias/Colete')).status, 204)
+    assert.ok(!(await chamar('GET', 'cadastros')).corpo.categorias.some((item) => item.nome === 'Colete'))
+  })
+
+  test('Lista de cadastro inexistente responde 404', async () => {
+    for (const [metodo, rota] of [['POST', 'cadastros/status'], ['PUT', 'cadastros/status/X'], ['DELETE', 'cadastros/status/X']]) {
+      const { status, corpo } = await chamar(metodo, rota, { nome: 'X' })
+      assert.equal(status, 404)
+      assert.deepEqual(corpo, { erro: 'Cadastro não encontrado.' })
+    }
+  })
+
+  test('Restaurar exemplo recria os itens de exemplo que tenham sido removidos', async () => {
+    assert.equal((await chamar('DELETE', 'cadastros/categorias/Troféu')).status, 204)
+    await restaurarExemplo()
+    assert.ok((await chamar('GET', 'cadastros')).corpo.categorias.some((item) => item.nome === 'Troféu'))
+  })
+})
+
 describe('Segurança do banco', { skip: !process.env.SUPABASE_ANON_KEY && 'SUPABASE_ANON_KEY não informada' }, () => {
   test('RLS: a chave pública não lê tabelas nem executa funções', async () => {
     await restaurarExemplo()
     const anonimo = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     })
-    for (const tabela of ['doacoes', 'beneficiarios', 'entregas']) {
+    for (const tabela of ['doacoes', 'beneficiarios', 'entregas', 'categorias_doacao', 'tipos_beneficiario', 'regioes']) {
       const { data, error } = await anonimo.from(tabela).select('*')
       assert.ok(error || data.length === 0, `tabela ${tabela} exposta`)
     }

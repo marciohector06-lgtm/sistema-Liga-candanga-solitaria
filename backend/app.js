@@ -2,6 +2,7 @@ import express from 'express'
 import path from 'node:path'
 import { exigirAutenticacao } from './autenticacao.js'
 import beneficiarios from './rotas/beneficiarios.js'
+import cadastros from './rotas/cadastros.js'
 import doacoes from './rotas/doacoes.js'
 import entregas from './rotas/entregas.js'
 import resumo from './rotas/resumo.js'
@@ -17,6 +18,7 @@ app.use('/api/beneficiarios', beneficiarios)
 app.use('/api/entregas', entregas)
 app.use('/api/resumo', resumo)
 app.use('/api/sistema', sistema)
+app.use('/api/cadastros', cadastros)
 
 app.use(express.static(path.join(import.meta.dirname, '..', 'frontend', 'dist')))
 

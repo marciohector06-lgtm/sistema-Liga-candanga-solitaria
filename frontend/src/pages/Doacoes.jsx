@@ -3,19 +3,23 @@ import { Field, inputClass } from '../components/Field'
 import { StatusBadge } from '../components/StatusBadge'
 import { useData } from '../lib/DataContext'
 import { hojeLocal } from '../lib/datas'
-import { CATEGORIAS_DOACAO } from '../lib/constantes'
 
 export function Doacoes() {
-  const { doacoes, adicionarDoacao } = useData()
-  const [categoria, setCategoria] = useState('Cesta básica')
+  const { doacoes, opcoes, adicionarDoacao } = useData()
+  const [categoriaEscolhida, setCategoria] = useState('')
   const [quantidade, setQuantidade] = useState('')
   const [origem, setOrigem] = useState('')
   const [data, setData] = useState(hojeLocal)
   const [erro, setErro] = useState('')
+  const categoria = opcoes.categorias.includes(categoriaEscolhida) ? categoriaEscolhida : (opcoes.categorias[0] ?? '')
 
   async function handleSubmit(evento) {
     evento.preventDefault()
     const quantidadeNumero = Number(quantidade)
+    if (!categoria) {
+      setErro('Nenhuma categoria cadastrada. Cadastre uma na tela Cadastros.')
+      return
+    }
     if (!quantidadeNumero || quantidadeNumero <= 0 || !origem.trim()) {
       setErro('Preencha a origem e uma quantidade inteira maior que zero.')
       return
@@ -47,7 +51,7 @@ export function Doacoes() {
             value={categoria}
             onChange={(evento) => setCategoria(evento.target.value)}
           >
-            {CATEGORIAS_DOACAO.map((item) => (
+            {opcoes.categorias.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -84,6 +88,7 @@ export function Doacoes() {
           />
         </Field>
         <div className="sm:col-span-2 lg:col-span-4">
+          <p className="mb-3 text-xs text-slate-500">Falta uma categoria? Cadastre na tela Cadastros.</p>
           <button
             type="submit"
             className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
